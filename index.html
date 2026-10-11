@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carnet de Chasse</title><meta name="theme-color" content="#2f4a2a"><link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--g:#2f4a2a;--g2:#4f6b3a;--b:#7a5230;--bg:#f4efe4;--card:#fffaf0;--t:#2a2418;--m:#8a7d66;--r:#a33b2b}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--t);padding-bottom:80px}
+header{background:var(--g);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:10px}
+header h1{font-size:19px;margin:0;flex:1;font-family:Georgia,serif}header button{background:none;border:0;color:#fff;font-size:22px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:8px 0;font-size:11px;color:var(--m)}nav button b{display:block;font-size:22px}nav button.on{color:var(--g);font-weight:700}
+main{padding:14px;max-width:720px;margin:auto}.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+h2{font-family:Georgia,serif;color:var(--g);margin:6px 0 10px}h3{margin:4px 0 8px;color:var(--b)}
+.btn{display:inline-block;border:0;border-radius:12px;padding:13px 16px;font-size:16px;background:var(--g);color:#fff;min-height:48px;margin:3px 0}
+.btn.alt{background:var(--b)}.btn.ghost{background:#e8e0cc;color:var(--t)}.btn.red{background:var(--r)}.btn.wide{width:100%}
+label{display:block;font-size:13px;color:var(--m);margin:10px 0 4px}input,select,textarea{width:100%;font-size:16px;padding:11px;border:1px solid #cfc4ad;border-radius:10px;background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #cfc4ad;background:#fff;border-radius:20px;padding:10px 14px;font-size:15px;min-height:44px}
+.chip.on{background:var(--g);color:#fff;border-color:var(--g)}.chip.prot{border-style:dashed}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sp{border:0;border-radius:14px;padding:12px 4px;min-height:84px;font-size:14px;background:#fff;box-shadow:0 1px 2px #0002}
+.sp i{display:block;font-style:normal;font-size:28px}.sp small{display:block;color:var(--m);font-size:11px}.sp.big{background:#efe3cf}.sp.small{background:#e3ead5}.sp.other{background:#dde6ea}.sp.on{outline:3px solid var(--b)}
+.sex{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.sex button{min-height:64px;font-size:16px;border:0;border-radius:12px;background:var(--b);color:#fff}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.list .it{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e5dccb}
+.it img{width:54px;height:54px;object-fit:cover;border-radius:8px}.muted{color:var(--m);font-size:13px}.tag{background:#e8e0cc;border-radius:8px;padding:2px 8px;font-size:12px;margin-right:4px}
+.map{height:260px;border-radius:12px;margin:6px 0}#bigmap{height:60vh}.stat{font-size:28px;font-weight:700;color:var(--g)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:12px 18px;border-radius:24px;z-index:2000;display:none}
+table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #e5dccb;text-align:left;font-size:14px}
+.hide{display:none!important}
+@media print{header,nav,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border:1px solid #ccc}}
+</style></head><body>
+<header><h1 id="title">Carnet de Chasse</h1><button onclick="go('settings')" aria-label="Settings">⚙️</button></header>
+<main id="app"></main>
+<nav><button data-v="home" onclick="go('home')"><b>📖</b>Carnet</button><button data-v="stalk" onclick="go('stalk')"><b>🔭</b>Approche</button><button data-v="map" onclick="go('map')"><b>🗺️</b>Map</button><button data-v="stats" onclick="go('stats')"><b>📊</b>Season</button></nav>
+<div class="toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const SEX=['Male','Female','Unknown'],SEXI={Male:'♂',Female:'♀',Unknown:'?'},AGE=['Adult','Young','Unknown'],AGEI={Adult:'ad',Young:'juv',Unknown:'?'};
+const sa=x=>`${SEXI[x.sex]||'?'} ${x.sex} · ${x.age||'Unknown'}`;
+function mig(d){[...d.hunts.flatMap(h=>h.kills),...d.sightings].forEach(x=>{if(x.sex==='Young'){x.sex='Unknown';x.age='Young'}x.age=x.age||'Unknown'});return d}
+const TYPES=['Driven hunt / Battue','Stalk / Approche','Walked-up / Devant soi','Wildfowling / Gibier d\'eau','Hide / Affût'];
+const DEF_SP=[
+['roe','Roe deer','Chevreuil','🦌','big',1],['red','Red deer','Cerf','🦌','big',1],['boar','Wild boar','Sanglier','🐗','big',1],['chamois','Chamois','Chamois','🐐','big',1],['mouflon','Mouflon','Mouflon','🐏','big',1],['fallow','Fallow deer','Daim','🦌','big',1],['fox','Fox','Renard','🦊','big',1],
+['pheasant','Pheasant','Faisan','🐓','small',1],['greyp','Grey partridge','Perdrix grise','🐦','small',1],['redp','Red-legged partridge','Perdrix rouge','🐦','small',1],['woodcock','Woodcock','Bécasse','🐦','small',1],['mallard','Mallard','Colvert','🦆','small',1],['teal','Teal','Sarcelle','🦆','small',1],['woodpigeon','Woodpigeon','Palombe','🕊️','small',1],['hare','Hare','Lièvre','🐇','small',1],['rabbit','Rabbit','Lapin','🐇','small',1],
+['badger','Badger','Blaireau','🦡','other',0],['wolf','Wolf','Loup','🐺','other',0],['lynx','Lynx','Lynx','🐈','other',0],['otter','Otter','Loutre','🦦','other',0],['stork','White stork','Cigogne','🦢','other',0],['crane','Common crane','Grue','🦩','other',0],['buzzard','Buzzard','Buse','🦅','other',0],['kite','Red kite','Milan royal','🦅','other',0],['eagle','Eagle','Aigle','🦅','other',0],['owl','Owl','Chouette / Hibou','🦉','other',0],['heron','Grey heron','Héron','🪶','other',0],['songbird','Songbird','Passereau','🐤','other',0]
+].map(a=>({id:a[0],en:a[1],fr:a[2],ic:a[3],grp:a[4],game:!!a[5]}));
+const GRP={big:'Big game / Grand gibier',small:'Small game / Petit gibier',other:'Other wildlife / Faune non chassable'};
+let D=load();function load(){try{const d=JSON.parse(localStorage.getItem('carnet'));if(d&&d.species)return mig(d)}catch(e){}return{species:DEF_SP,hunts:[],sightings:[]}}
+function save(){try{localStorage.setItem('carnet',JSON.stringify(D))}catch(e){toast('⚠️ Storage full – export & remove photos')}}
+const $=s=>document.querySelector(s),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const sp=id=>D.species.find(s=>s.id===id)||{id,en:id,fr:'',ic:'❔',grp:'other',game:false};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',1800)}
+function gps(){return new Promise(r=>{if(!navigator.geolocation)return r(null);navigator.geolocation.getCurrentPosition(p=>r([+p.coords.latitude.toFixed(6),+p.coords.longitude.toFixed(6)]),()=>r(null),{enableHighAccuracy:true,timeout:8000,maximumAge:60000})})}
+function fmtD(d){return new Date(d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+function fmtT(d){return new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
+const nowLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+let maps=[];function mkMap(el,center){maps.forEach(m=>m.remove());maps=[];if(!window.L){el.innerHTML='<p class="muted" style="padding:20px">Map unavailable offline (Leaflet not loaded).</p>';return null}
+const m=L.map(el).setView(center||[46.6,2.4],center?13:5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(m);maps.push(m);return m}
+function photo(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};im.src=fr.result};fr.readAsDataURL(file)})}
+let view='home',cur=null;
+function go(v,arg){view=v;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);(V[v])(arg)}
+function totals(kills){const t={};kills.forEach(k=>t[k.sp]=(t[k.sp]||0)+(k.n||1));return t}
+function totStr(t){const e=Object.entries(t);return e.length?e.map(([k,n])=>`${sp(k).ic} ${n} ${esc(sp(k).en)}`).join(' · '):'<span class="muted">No game taken / Bredouille</span>'}
+const V={};
+V.home=()=>{$('#title').textContent='Carnet de Chasse';const hs=[...D.hunts].sort((a,b)=>b.date.localeCompare(a.date));
+$('#app').innerHTML=`<button class="btn wide" onclick="newHunt()">＋ New hunt day / Nouvelle journée</button><button class="btn alt wide" onclick="go('stalk')">🔭 Start stalking / Mode Approche</button>
+<h2>My hunts</h2>${hs.length?hs.map(h=>{const t=totals(h.kills),n=Object.values(t).reduce((a,b)=>a+b,0);const ph=h.kills.find(k=>k.photo);
+return`<div class="card" onclick="go('hunt','${h.id}')"><div class="row"><div style="flex:3"><b>${fmtD(h.date)}</b> <span class="tag">${esc(h.type.split(' /')[0])}</span><div class="muted">${esc(h.place||'')} ${h.host?'· invited by '+esc(h.host):''}</div><div style="margin-top:6px">${totStr(t)}</div></div>${ph?`<img src="${ph.photo}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex:0">`:`<div class="stat" style="flex:0">${n}</div>`}</div></div>`}).join(''):'<div class="card muted">No hunts yet. Tap “New hunt day” to start your carnet.</div>'}`};
+function newHunt(){const h={id:uid(),date:new Date().toISOString().slice(0,10),place:'',pos:null,host:'',neighbours:[],type:TYPES[0],kills:[],notes:''};D.hunts.push(h);save();go('hunt',h.id)}
+V.hunt=id=>{const h=D.hunts.find(x=>x.id===id);if(!h)return go('home');cur=h;$('#title').textContent='Hunt day / Journée';const t=totals(h.kills);
+$('#app').innerHTML=`<div class="card"><div class="row"><div><label>Date</label><input type="date" value="${h.date}" onchange="H('date',this.value)"></div></div>
+<label>Place / Lieu</label><input value="${esc(h.place)}" placeholder="Estate, commune…" onchange="H('place',this.value)">
+<label>Location (tap map to set pin)</label><div id="hmap" class="map"></div><button class="btn ghost" onclick="huntGps()">📍 Use my GPS</button>
+<label>Type</label><div class="chips">${TYPES.map(x=>`<button class="chip ${x===h.type?'on':''}" onclick="H('type','${x.replace(/'/g,"\\'")}');go('hunt','${h.id}')">${esc(x)}</button>`).join('')}</div>
+<label>Invited by / Invité par</label><input value="${esc(h.host)}" placeholder="Host name" onchange="H('host',this.value)">
+<label>Neighbours at posts / Voisins de poste</label><div class="chips">${h.neighbours.map((n,i)=>`<button class="chip on" onclick="cur.neighbours.splice(${i},1);save();go('hunt','${h.id}')">${esc(n)} ✕</button>`).join('')}</div>
+<div class="row" style="margin-top:6px"><input id="nb" placeholder="Add a name"><button class="btn" style="flex:0" onclick="addNb()">＋</button></div></div>
+<div class="card"><h3>Tableau · Total: ${h.kills.reduce((a,k)=>a+(k.n||1),0)}</h3><div>${totStr(t)}</div>
+<div class="list">${h.kills.map((k,i)=>`<div class="it">${k.photo?`<img src="${k.photo}">`:`<span style="font-size:32px">${sp(k.sp).ic}</span>`}<div style="flex:1"><b>${esc(sp(k.sp).en)}</b> ${sa(k)} ${k.n>1?'×'+k.n:''}<div class="muted">${k.time||''} ${k.pos?'📍':''} ${esc(k.note||'')}</div></div><button class="chip" onclick="editKill(${i})">✏️</button></div>`).join('')}</div>
+<button class="btn wide" onclick="editKill(-1)">＋ Add animal taken / Ajouter</button></div>
+<div class="card"><label>Notes</label><textarea rows="4" onchange="H('notes',this.value)">${esc(h.notes)}</textarea></div>
+<button class="btn red noprint" onclick="if(confirm('Delete this hunt?')){D.hunts=D.hunts.filter(x=>x!==cur);save();go('home')}">Delete hunt</button>`;
+const m=mkMap($('#hmap'),h.pos);if(m){let mk=h.pos?L.marker(h.pos).addTo(m):null;h.kills.forEach(k=>k.pos&&L.circleMarker(k.pos,{radius:7,color:'#a33b2b'}).addTo(m).bindPopup(sp(k.sp).en));
+m.on('click',e=>{h.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];save();mk?mk.setLatLng(h.pos):mk=L.marker(h.pos).addTo(m)})}};
+function H(k,v){cur[k]=v;save()}
+function addNb(){const v=$('#nb').value.trim();if(v){cur.neighbours.push(v);save();go('hunt',cur.id)}}
+async function huntGps(){toast('Locating…');const p=await gps();if(!p)return toast('GPS unavailable');cur.pos=p;save();go('hunt',cur.id)}
+function spButtons(list,sel,fn){const g={};list.forEach(s=>(g[s.grp]=g[s.grp]||[]).push(s));
+return Object.keys(GRP).filter(k=>g[k]).map(k=>`<h3>${GRP[k]}</h3><div class="grid">${g[k].map(s=>`<button class="sp ${s.grp} ${sel===s.id?'on':''}" onclick="${fn}('${s.id}')"><i>${s.ic}</i>${esc(s.en)}<small>${esc(s.fr)}${s.game?'':' · 🛡️'}</small></button>`).join('')}</div>`).join('')}
+let K=null,KI=-1,showAll=false;
+function editKill(i){KI=i;K=i>=0?{...cur.kills[i]}:{sp:null,sex:'Unknown',age:'Unknown',n:1,time:fmtT(Date.now()),photo:null,pos:null,note:''};renderKill()}
+function renderKill(){const list=showAll?D.species:D.species.filter(s=>s.game);
+$('#app').innerHTML=`<h2>${KI>=0?'Edit':'Add'} animal taken</h2>${spButtons(list,K.sp,'kSp')}
+<button class="chip" style="margin-top:8px" onclick="showAll=!showAll;renderKill()">${showAll?'Game species only':'Show all species'}</button>
+<h3>Sex / Sexe</h3><div class="sex">${SEX.map(s=>`<button style="${K.sex===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="K.sex='${s}';renderKill()">${SEXI[s]}<br>${s}</button>`).join('')}</div>
+<h3>Age / Âge</h3><div class="sex">${AGE.map(s=>`<button style="${K.age===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="K.age='${s}';renderKill()">${AGEI[s]}<br>${s}</button>`).join('')}</div>
+<div class="card"><div class="row"><div><label>Time</label><input type="time" value="${K.time}" onchange="K.time=this.value"></div><div><label>Count</label><input type="number" min="1" value="${K.n}" onchange="K.n=+this.value||1"></div></div>
+<label>Photo</label>${K.photo?`<img src="${K.photo}" style="width:100%;border-radius:10px">`:''}<input type="file" accept="image/*" capture="environment" onchange="photo(this.files[0]).then(p=>{K.photo=p;renderKill()})">
+<label>Pin (tap map)</label><div id="kmap" class="map"></div><button class="btn ghost" onclick="gps().then(p=>{if(p){K.pos=p;renderKill()}else toast('GPS unavailable')})">📍 GPS</button>
+<label>Note</label><input value="${esc(K.note)}" onchange="K.note=this.value" placeholder="Weight, trophy, post n°…"></div>
+<div class="row"><button class="btn ghost" onclick="go('hunt',cur.id)">Cancel</button>${KI>=0?`<button class="btn red" onclick="cur.kills.splice(KI,1);save();go('hunt',cur.id)">Delete</button>`:''}<button class="btn" onclick="saveKill()">Save ✓</button></div>`;
+const m=mkMap($('#kmap'),K.pos||cur.pos);if(m){let mk=K.pos?L.marker(K.pos).addTo(m):null;m.on('click',e=>{K.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];mk?mk.setLatLng(K.pos):mk=L.marker(K.pos).addTo(m)})}}
+function kSp(id){K.sp=id;renderKill()}
+function saveKill(){if(!K.sp)return toast('Pick a species');if(!sp(K.sp).game&&!confirm(sp(K.sp).en+' is marked protected/non-game. Save anyway?'))return;KI>=0?cur.kills[KI]=K:cur.kills.push(K);save();go('hunt',cur.id)}
+let S={sp:null,sex:null,n:1,shot:false};
+V.stalk=()=>{$('#title').textContent='Mode Approche';const today=D.sightings.filter(s=>new Date(s.t).toDateString()===new Date().toDateString()).sort((a,b)=>b.t-a.t);
+$('#app').innerHTML=`<div class="card noprint" style="position:sticky;top:56px;z-index:500">${S.sp?`<b>${sp(S.sp).ic} ${esc(sp(S.sp).en)}</b> – sex, then age saves:`:'<b>1. Species · 2. Sex · 3. Age</b> → saved with time + GPS'}
+<div class="sex">${SEX.map(s=>`<button ${S.sp?'':'disabled style="opacity:.4"'} style="${S.sex===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="S.sex='${s}';V.stalk()">${SEXI[s]}<br>${s}</button>`).join('')}</div>
+<div class="sex">${AGE.map(s=>`<button ${S.sp?'':'disabled style="opacity:.4"'} style="background:#2f4a2a" onclick="sight('${s}')">${AGEI[s]}<br>${s} ✓</button>`).join('')}</div>
+${S.sp?`<button class="btn ghost wide" onclick="sight('Unknown')">⚡ Quick save (${S.sex||'Unknown'} · age unknown)</button>`:''}
+<div class="row"><div class="row" style="flex:2"><button class="btn ghost" onclick="S.n=Math.max(1,S.n-1);V.stalk()">−</button><div style="text-align:center;font-size:22px"><b>${S.n}</b><div class="muted">count</div></div><button class="btn ghost" onclick="S.n++;V.stalk()">＋</button></div>
+<button class="chip ${S.shot?'on':''}" onclick="S.shot=!S.shot;V.stalk()">🎯 Shot ${S.shot?'ON':'off'}</button></div></div>
+<div class="row"><input id="q" placeholder="🔎 Search / add species…" oninput="filt(this.value)"><button class="btn alt" style="flex:0" onclick="addSp($('#q').value)">＋ Add</button></div>
+<div id="spg">${spButtons(D.species,S.sp,'sSp')}</div>
+<h2>Today's sightings (${today.length})</h2><div class="card list">${today.length?today.map(s=>`<div class="it"><span style="font-size:28px">${sp(s.sp).ic}</span><div style="flex:1"><b>${esc(sp(s.sp).en)}</b> ${sa(s)} ×${s.n} ${s.shot?'🎯':''}<div class="muted">${fmtT(s.t)} ${s.pos?'📍 '+s.pos.join(', '):'no GPS'}</div></div><button class="chip" onclick="D.sightings=D.sightings.filter(x=>x.id!=='${s.id}');save();V.stalk()">↶ Undo</button></div>`).join(''):'<span class="muted">Nothing yet.</span>'}</div>
+<div id="smap" class="map"></div>`;
+const m=mkMap($('#smap'),today.find(s=>s.pos)?.pos);if(m)today.forEach(s=>s.pos&&L.circleMarker(s.pos,{radius:7,color:s.shot?'#a33b2b':'#2f4a2a'}).addTo(m).bindPopup(`${sp(s.sp).en} ${sa(s)} ×${s.n} ${fmtT(s.t)}`))};
+function sSp(id){S.sp=id;V.stalk()}
+function filt(q){q=q.toLowerCase();$('#spg').innerHTML=spButtons(D.species.filter(s=>(s.en+' '+s.fr).toLowerCase().includes(q)),S.sp,'sSp')}
+function addSp(name,silent){name=(name||'').trim();if(!name)return toast('Type a species name');const ex=D.species.find(s=>s.en.toLowerCase()===name.toLowerCase()||s.fr.toLowerCase()===name.toLowerCase());if(ex){S.sp=ex.id;return V.stalk()}
+const game=confirm(`Add “${name}”.\nOK = game species (chassable)\nCancel = protected / non-game`);const s={id:'c_'+uid(),en:name,fr:'',ic:game?'🎯':'👁️',grp:'other',game};D.species.push(s);save();S.sp=s.id;toast('Added '+name);V.stalk()}
+async function sight(age){const sex=S.sex||'Unknown';const s={id:uid(),t:Date.now(),sp:S.sp,sex,age,n:S.n,shot:S.shot,pos:null};D.sightings.push(s);save();toast(`✓ ${sp(S.sp).en} ${sex} ${age} ×${S.n}`);navigator.vibrate&&navigator.vibrate(40);
+S={sp:null,sex:null,n:1,shot:false};V.stalk();const p=await gps();if(p){s.pos=p;save();if(view==='stalk')V.stalk()}}
+let F={hunts:1,kills:1,sight:1,sp:'',season:''};
+V.map=()=>{$('#title').textContent='Map / Carte';$('#app').innerHTML=`<div class="chips noprint">${[['hunts','🏕️ Hunts'],['kills','🎯 Kills'],['sight','👁️ Sightings']].map(([k,l])=>`<button class="chip ${F[k]?'on':''}" onclick="F.${k}=!F.${k};go('map')">${l}</button>`).join('')}</div>
+<div class="row" style="margin:8px 0"><select onchange="F.sp=this.value;go('map')"><option value="">All species</option>${D.species.map(s=>`<option value="${s.id}" ${F.sp===s.id?'selected':''}>${esc(s.en)}</option>`).join('')}</select>${seasonSel('go(\'map\')')}</div><div id="bigmap" class="map"></div>`;
+const m=mkMap($('#bigmap'));if(!m)return;const pts=[];const ok=d=>!F.season||season(d)===F.season;
+D.hunts.filter(h=>ok(h.date)).forEach(h=>{if(F.hunts&&h.pos){pts.push(h.pos);L.marker(h.pos).addTo(m).bindPopup(`<b>${fmtD(h.date)}</b><br>${esc(h.place)}<br>${totStr(totals(h.kills))}`)}
+if(F.kills)h.kills.forEach(k=>{const p=k.pos||h.pos;if(p&&(!F.sp||F.sp===k.sp)){pts.push(p);L.circleMarker(p,{radius:8,color:'#a33b2b',fillOpacity:.7}).addTo(m).bindPopup(`🎯 ${sp(k.sp).en} ${sa(k)}<br>${fmtD(h.date)}${k.photo?`<br><img src="${k.photo}" width="120">`:''}`)}})});
+if(F.sight)D.sightings.filter(s=>s.pos&&ok(new Date(s.t).toISOString())&&(!F.sp||F.sp===s.sp)).forEach(s=>{pts.push(s.pos);L.circleMarker(s.pos,{radius:6,color:sp(s.sp).game?'#2f4a2a':'#3a6b8a'}).addTo(m).bindPopup(`👁️ ${sp(s.sp).en} ${sa(s)} ×${s.n}<br>${new Date(s.t).toLocaleString('en-GB')}`)});
+if(pts.length)m.fitBounds(pts,{maxZoom:14,padding:[30,30]})};
+function season(d){const x=new Date(d),y=x.getFullYear();return x.getMonth()>=6?`${y}-${y+1}`:`${y-1}-${y}`}
+function seasons(){return[...new Set([...D.hunts.map(h=>season(h.date)),...D.sightings.map(s=>season(s.t)),season(Date.now())])].sort().reverse()}
+function seasonSel(cb){return`<select onchange="F.season=this.value;${cb}"><option value="">All seasons</option>${seasons().map(s=>`<option ${F.season===s?'selected':''}>${s}</option>`).join('')}</select>`}
+V.stats=()=>{$('#title').textContent='Season / Saison';const ok=d=>!F.season||season(d)===F.season;const hs=D.hunts.filter(h=>ok(h.date)),ss=D.sightings.filter(s=>ok(s.t));
+const kills=hs.flatMap(h=>h.kills),t=totals(kills),tot=kills.reduce((a,k)=>a+(k.n||1),0);const st={};ss.forEach(s=>st[s.sp]=(st[s.sp]||0)+s.n);
+const sexT={};kills.forEach(k=>{sexT[k.sp]=sexT[k.sp]||{};sexT[k.sp]['s'+k.sex]=(sexT[k.sp]['s'+k.sex]||0)+(k.n||1);sexT[k.sp]['a'+k.age]=(sexT[k.sp]['a'+k.age]||0)+(k.n||1)});const hosts={};hs.forEach(h=>h.host&&(hosts[h.host]=(hosts[h.host]||0)+1));
+$('#app').innerHTML=`<div class="noprint">${seasonSel("go('stats')")}</div><h2>Season ${F.season||'(all)'}</h2>
+<div class="row"><div class="card"><div class="stat">${hs.length}</div>hunt days</div><div class="card"><div class="stat">${tot}</div>animals taken</div><div class="card"><div class="stat">${ss.length}</div>sightings</div></div>
+<div class="card"><h3>Tableau de chasse</h3><table><tr><th>Species</th>${SEX.map(s=>`<th>${SEXI[s]}</th>`).join('')}${AGE.map(s=>`<th>${AGEI[s]}</th>`).join('')}<th>Total</th></tr>${Object.keys(t).map(k=>`<tr><td>${sp(k).ic} ${esc(sp(k).en)}</td>${SEX.map(s=>`<td>${sexT[k]['s'+s]||''}</td>`).join('')}${AGE.map(s=>`<td>${sexT[k]['a'+s]||''}</td>`).join('')}<td><b>${t[k]}</b></td></tr>`).join('')||'<tr><td colspan=8 class=muted>None</td></tr>'}</table></div>
+<div class="card"><h3>Observations</h3><table>${Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<tr><td>${sp(k).ic} ${esc(sp(k).en)} ${sp(k).game?'':'<span class=tag>protected</span>'}</td><td><b>${n}</b></td></tr>`).join('')||'<tr><td class=muted>None</td></tr>'}</table></div>
+<div class="card"><h3>Hosts</h3>${Object.entries(hosts).map(([h,n])=>`<span class="tag">${esc(h)} ×${n}</span>`).join(' ')||'<span class=muted>—</span>'}</div>
+<div class="card"><h3>Hunt days</h3><table>${hs.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>`<tr><td>${h.date}</td><td>${esc(h.place)}<br><span class=muted>${esc(h.host)} · ${esc(h.neighbours.join(', '))}</span></td><td>${totStr(totals(h.kills))}</td></tr>`).join('')}</table></div>
+<div class="noprint"><button class="btn wide" onclick="print()">🖨️ Printable report / PDF</button><button class="btn alt wide" onclick="csv()">⬇️ Export CSV</button><button class="btn ghost wide" onclick="go('settings')">Backup & settings</button></div>`};
+function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click()}
+function csv(){const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const r=[['record','date','time','species','species_fr','game','sex','age','count','shot','lat','lon','place','host','neighbours','type','note']];
+D.hunts.forEach(h=>h.kills.forEach(k=>{const p=k.pos||h.pos||[];r.push(['kill',h.date,k.time,sp(k.sp).en,sp(k.sp).fr,sp(k.sp).game,k.sex,k.age,k.n,1,p[0],p[1],h.place,h.host,h.neighbours.join('; '),h.type,k.note])}));
+D.sightings.forEach(s=>{const d=new Date(s.t),p=s.pos||[];r.push(['sighting',d.toISOString().slice(0,10),fmtT(s.t),sp(s.sp).en,sp(s.sp).fr,sp(s.sp).game,s.sex,s.age,s.n,s.shot?1:0,p[0],p[1],'','','','',''])});
+dl('carnet-'+new Date().toISOString().slice(0,10)+'.csv',r.map(x=>x.map(q).join(',')).join('\n'),'text/csv')}
+V.settings=()=>{$('#title').textContent='Settings / Réglages';$('#app').innerHTML=`<div class="card"><h3>Backup</h3><button class="btn wide" onclick="dl('carnet-backup.json',JSON.stringify(D),'application/json')">⬇️ Export JSON backup</button>
+<label>Import JSON backup (replaces data)</label><input type="file" accept=".json,application/json" onchange="imp(this.files[0])"><button class="btn alt wide" onclick="csv()">⬇️ Export CSV</button>
+<p class="muted">Storage used: ${(JSON.stringify(D).length/1024).toFixed(0)} KB (browser limit ≈5 MB)</p></div>
+<div class="card"><h3>Species / Espèces</h3><p class="muted">Tap 🎯/🛡️ to toggle game vs protected. Only game species appear in the “taken” picker.</p><div class="list">${D.species.map((s,i)=>`<div class="it"><input style="width:56px;flex:0" value="${s.ic}" onchange="D.species[${i}].ic=this.value;save()"><div style="flex:1"><input value="${esc(s.en)}" onchange="D.species[${i}].en=this.value;save()"><input value="${esc(s.fr)}" placeholder="French" onchange="D.species[${i}].fr=this.value;save()"></div>
+<div style="flex:0"><select style="width:90px" onchange="D.species[${i}].grp=this.value;save()">${Object.keys(GRP).map(g=>`<option value="${g}" ${s.grp===g?'selected':''}>${g}</option>`).join('')}</select><button class="chip" onclick="D.species[${i}].game=!D.species[${i}].game;save();go('settings')">${s.game?'🎯 game':'🛡️ prot.'}</button><button class="chip" onclick="D.species.splice(${i},1);save();go('settings')">🗑️</button></div></div>`).join('')}</div>
+<div class="row"><input id="ns" placeholder="New species name"><button class="btn" style="flex:0" onclick="D.species.push({id:'c_'+uid(),en:$('#ns').value||'New',fr:'',ic:'❔',grp:'other',game:false});save();go('settings')">＋</button></div>
+<button class="btn ghost wide" onclick="if(confirm('Reset species list to defaults?')){D.species=DEF_SP;save();go('settings')}">Reset species list</button></div>
+<div class="card"><button class="btn ghost wide" onclick="loadDemo()">Load demo data</button><button class="btn red wide" onclick="if(confirm('Erase ALL data?')){localStorage.removeItem('carnet');D=load();go('home')}">Erase all data</button></div>`};
+function imp(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.species)throw 0;D=mig(d);save();toast('Imported');go('home')}catch(e){toast('Invalid backup file')}};r.readAsText(f)}
+function loadDemo(){const c=[47.35,1.75],j=()=>[+(c[0]+(Math.random()-.5)*.04).toFixed(5),+(c[1]+(Math.random()-.5)*.04).toFixed(5)];
+D.hunts.push({id:uid(),date:'2026-10-04',place:'Domaine des Chênes, Sologne',pos:c,host:'Henri Dubois',neighbours:['Marc','Sophie','Jean-Luc'],type:TYPES[0],notes:'Beautiful morning, 6 traques.',kills:[{sp:'boar',sex:'Male',age:'Adult',n:1,time:'10:40',pos:j(),note:'78 kg'},{sp:'roe',sex:'Female',n:1,time:'14:15',pos:j(),note:''}]},
+{id:uid(),date:'2026-09-27',place:'Plaine de Beauce',pos:[48.2,1.6],host:'Claire Martin',neighbours:['Paul'],type:TYPES[2],notes:'',kills:[{sp:'pheasant',sex:'Male',n:3,time:'11:00'},{sp:'greyp',sex:'Unknown',n:2,time:'15:30'}]});
+[['roe','Female','Adult',2],['red','Male','Adult',1],['buzzard','Unknown','Unknown',1],['crane','Unknown','Adult',14],['boar','Unknown','Young',5]].forEach(([s,x,a,n],i)=>D.sightings.push({id:uid(),t:Date.now()-i*900000,sp:s,sex:x,age:a,n,shot:false,pos:j()}));mig(D);save();go('home')}
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(location.search.includes('demo')&&!D.hunts.length)loadDemo();go(V[location.hash.slice(1)]?location.hash.slice(1):'home');
+</script></body></html>
