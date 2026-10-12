@@ -1,163 +1,365 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Carnet de Chasse</title><meta name="theme-color" content="#2f4a2a"><link rel="manifest" href="manifest.json">
+<title>Carnet de Chasse</title><meta name="description" content="The digital hunting logbook"><meta name="theme-color" content="#1b3122">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--g:#2f4a2a;--g2:#4f6b3a;--b:#7a5230;--bg:#f4efe4;--card:#fffaf0;--t:#2a2418;--m:#8a7d66;--r:#a33b2b}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--t);padding-bottom:80px}
-header{background:var(--g);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:10px}
-header h1{font-size:19px;margin:0;flex:1;font-family:Georgia,serif}header button{background:none;border:0;color:#fff;font-size:22px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;padding:8px 0;font-size:11px;color:var(--m)}nav button b{display:block;font-size:22px}nav button.on{color:var(--g);font-weight:700}
-main{padding:14px;max-width:720px;margin:auto}.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
-h2{font-family:Georgia,serif;color:var(--g);margin:6px 0 10px}h3{margin:4px 0 8px;color:var(--b)}
-.btn{display:inline-block;border:0;border-radius:12px;padding:13px 16px;font-size:16px;background:var(--g);color:#fff;min-height:48px;margin:3px 0}
-.btn.alt{background:var(--b)}.btn.ghost{background:#e8e0cc;color:var(--t)}.btn.red{background:var(--r)}.btn.wide{width:100%}
-label{display:block;font-size:13px;color:var(--m);margin:10px 0 4px}input,select,textarea{width:100%;font-size:16px;padding:11px;border:1px solid #cfc4ad;border-radius:10px;background:#fff}
-.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #cfc4ad;background:#fff;border-radius:20px;padding:10px 14px;font-size:15px;min-height:44px}
-.chip.on{background:var(--g);color:#fff;border-color:var(--g)}.chip.prot{border-style:dashed}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sp{border:0;border-radius:14px;padding:12px 4px;min-height:84px;font-size:14px;background:#fff;box-shadow:0 1px 2px #0002}
-.sp i{display:block;font-style:normal;font-size:28px}.sp small{display:block;color:var(--m);font-size:11px}.sp.big{background:#efe3cf}.sp.small{background:#e3ead5}.sp.other{background:#dde6ea}.sp.on{outline:3px solid var(--b)}
-.sex{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.sex button{min-height:64px;font-size:16px;border:0;border-radius:12px;background:var(--b);color:#fff}
-.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.list .it{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e5dccb}
-.it img{width:54px;height:54px;object-fit:cover;border-radius:8px}.muted{color:var(--m);font-size:13px}.tag{background:#e8e0cc;border-radius:8px;padding:2px 8px;font-size:12px;margin-right:4px}
-.map{height:260px;border-radius:12px;margin:6px 0}#bigmap{height:60vh}.stat{font-size:28px;font-weight:700;color:var(--g)}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:12px 18px;border-radius:24px;z-index:2000;display:none}
-table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #e5dccb;text-align:left;font-size:14px}
-.hide{display:none!important}
-@media print{header,nav,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border:1px solid #ccc}}
+:root{--fg:#1b3122;--fg2:#2c4a34;--brass:#b08a46;--brass2:#d8b878;--bg:#f3eee3;--card:#fffcf5;--line:#e4dccb;--t:#22201a;--m:#7d7564;--r:#9b3a2a;--ok:#3f7a4a;--warn:#c08a2a;--sh:0 1px 2px #0000000f,0 4px 14px #1b31220f;--serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;--sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#101a13;--card:#18261c;--line:#2a3b2e;--t:#ece6d6;--m:#a39b86;--fg2:#a9c4a0;--sh:0 1px 2px #0006}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg);font-variant-numeric:lining-nums}*{font-variant-numeric:lining-nums}body{margin:0;font:15px/1.45 var(--sans);background:var(--bg);color:var(--t);padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-5px;flex:none}
+header{background:linear-gradient(180deg,#1b3122,#152819);color:#f3ead2;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:10px;border-bottom:1px solid #b08a4655}
+header .logo{width:34px;height:34px;border-radius:9px}header h1{font:600 22px/1 var(--serif);margin:0;flex:1;letter-spacing:.3px}header h1 small{display:block;font:500 10px/1.4 var(--sans);letter-spacing:2px;text-transform:uppercase;color:var(--brass2);margin-top:3px}
+.hb{background:#ffffff14;border:0;color:#f3ead2;width:42px;height:42px;border-radius:12px;display:grid;place-items:center}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;border-top:1px solid var(--line);z-index:1000;padding:6px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px #0000000d}
+nav button{flex:1;border:0;background:none;padding:6px 0;font:500 11px var(--sans);color:var(--m);border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:3px}nav button svg.i{width:24px;height:24px}
+nav button.on{color:var(--fg);background:#b08a461f}@media(prefers-color-scheme:dark){nav button.on{color:var(--brass2)}}
+main{padding:16px;max-width:760px;margin:auto}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:var(--sh);border:1px solid var(--line)}
+h2{font:600 26px/1.15 var(--serif);color:var(--fg2);margin:8px 0 12px}h3{font:600 19px/1.2 var(--serif);margin:0 0 10px;color:var(--brass);display:flex;align-items:center;gap:8px}h3 .sp{flex:1}
+.eyebrow{font:600 11px var(--sans);letter-spacing:1.6px;text-transform:uppercase;color:var(--brass)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 18px;font:600 15px var(--sans);background:var(--fg);color:#f6eedb;min-height:52px;margin:4px 0;cursor:pointer}
+.btn.brass{background:linear-gradient(180deg,#c39a52,#a07a38);color:#1b1608}.btn.ghost{background:transparent;color:var(--t);border:1.5px solid var(--line)}.btn.red{background:var(--r)}.btn.wide{width:100%}.btn.sm{min-height:40px;padding:8px 12px;font-size:13px}
+.btn:active,.chip:active,.tile:active{transform:scale(.97)}
+label{display:block;font:600 11px var(--sans);letter-spacing:1px;text-transform:uppercase;color:var(--m);margin:14px 0 6px}
+input,select,textarea{width:100%;font:16px var(--sans);padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--t)}input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);border-color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1.5px solid var(--line);background:var(--card);color:var(--t);border-radius:22px;padding:9px 14px;font:500 14px var(--sans);min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--fg);color:#f6eedb;border-color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{border:1.5px solid var(--line);border-radius:16px;padding:10px 4px;min-height:88px;font:600 13px/1.2 var(--sans);background:var(--card);color:var(--t)}
+.tile i{display:block;font-style:normal;font-size:28px;margin-bottom:4px}.tile small{display:block;color:var(--m);font:400 11px var(--sans);margin-top:2px}.tile.on{border-color:var(--brass);background:#b08a4626;box-shadow:inset 0 0 0 2px var(--brass)}.tile.prot small:after{content:' · protégé'}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.seg button{min-height:60px;font:600 15px var(--sans);border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--t)}.seg button b{display:block;font:600 20px var(--serif)}
+.seg button.on{background:var(--fg);color:#f6eedb;border-color:var(--fg)}.seg.go button{background:var(--fg2);color:#fff;border-color:transparent}@media(prefers-color-scheme:dark){.seg.go button{color:#101a13}}
+.seg button:disabled{opacity:.35}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}.list .it{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.list .it:last-child{border:0}
+.it img,.thumb{width:56px;height:56px;object-fit:cover;border-radius:12px;flex:none;background:var(--line)}.emo{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;font-size:28px;background:var(--bg);flex:none}
+.muted{color:var(--m);font-size:13px}.tag{display:inline-block;background:#b08a4626;color:var(--brass);border-radius:8px;padding:2px 8px;font:600 11px var(--sans);margin-right:4px}.tag.g{background:#3f7a4a22;color:var(--ok)}.tag.r{background:#9b3a2a1f;color:var(--r)}
+.map{height:240px;border-radius:14px;margin:8px 0;border:1px solid var(--line);z-index:0}#bigmap{height:62vh}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--sh)}.kpi b{display:block;font:700 30px/1 var(--serif);color:var(--fg2)}.kpi span{font-size:12px;color:var(--m)}
+.hero{background:radial-gradient(120% 140% at 100% 0%,#2c4a34,#14261a);color:#f3ead2;border-radius:22px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden;border:1px solid #b08a4655}
+.hero h2{color:#f3ead2;margin:4px 0 6px;font-size:30px}.hero .eyebrow{color:var(--brass2)}.hero p{margin:0 0 14px;color:#d9d0b8}.hero .acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero .btn.ghost{color:#f3ead2;border-color:#ffffff33}
+.gps{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:8px 8px 8px 12px;margin:8px 0}.gps .dot{width:12px;height:12px;border-radius:50%;background:var(--m);flex:none;box-shadow:0 0 0 4px #0000000d}
+.gps .dot.ok{background:var(--ok)}.gps .dot.mid{background:var(--warn)}.gps .dot.bad{background:var(--r)}.gps .dot.wait{animation:p 1s infinite}@keyframes p{50%{opacity:.3}}.gps div{flex:1;font-size:13px}.gps b{font-weight:600}
+.shotbtn{width:100%;min-height:88px;font:700 22px var(--serif);border-radius:20px;border:0;background:linear-gradient(180deg,#a8442f,#86301f);color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 6px 18px #9b3a2a44}
+.counter{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin:12px 0}.counter b{display:block;font:700 26px var(--serif);color:var(--fg2)}.counter span{font-size:11px;color:var(--m);text-transform:uppercase;letter-spacing:1px}
+.stepper{display:flex;align-items:center;gap:8px}.stepper button{width:48px;height:48px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--t);font-size:22px}.stepper b{min-width:36px;text-align:center;font:700 24px var(--serif)}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#1b3122;color:#f3ead2;padding:12px 20px;border-radius:24px;z-index:3000;display:none;box-shadow:0 8px 24px #0004;border:1px solid #b08a4688;font-weight:500}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{font:600 11px var(--sans);letter-spacing:1px;text-transform:uppercase;color:var(--m)}td.n,th.n{text-align:center}
+.lb{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.lb .rk{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--serif);background:var(--bg);flex:none}
+.lb.first .rk{background:linear-gradient(180deg,#e6c987,#b08a46);color:#1b1608}.bar{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--fg2),var(--brass))}
+.trophy{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#2c4a34,#14261a);color:#f3ead2;border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid #b08a4688}.trophy svg{width:54px;height:54px;stroke:#e6c987;flex:none}
+.trophy b{font:700 22px var(--serif);display:block}.empty{text-align:center;padding:26px 10px;color:var(--m)}.empty svg{width:44px;height:44px;stroke:var(--brass);margin-bottom:8px}
+.role{display:inline-flex;background:var(--bg);border-radius:14px;padding:4px;border:1.5px solid var(--line);width:100%}.role button{flex:1;border:0;background:none;padding:10px;border-radius:10px;font:600 14px var(--sans);color:var(--m);min-height:44px}.role button.on{background:var(--fg);color:#f6eedb}
+.kpi b,.counter b,.stepper b,.lb .rk,.lb>b,.seg button b,.num{font-family:var(--sans)!important;font-weight:700;letter-spacing:-.5px}.kpi b{font-size:26px}.hide{display:none!important}.leaflet-popup-content{font-family:var(--sans)}
+@media print{header,nav,.noprint{display:none!important}body{background:#fff;color:#000;padding:0}.card,.kpi{box-shadow:none;border:1px solid #ccc;break-inside:avoid}}
 </style></head><body>
-<header><h1 id="title">Carnet de Chasse</h1><button onclick="go('settings')" aria-label="Settings">⚙️</button></header>
+<header><img class="logo" src="icon.svg" alt=""><h1 id="title">Carnet de Chasse<small id="sub">Hunting logbook</small></h1><button class="hb" onclick="go('settings')" aria-label="Settings"><svg class="i"><use href="#i-gear"/></svg></button></header>
 <main id="app"></main>
-<nav><button data-v="home" onclick="go('home')"><b>📖</b>Carnet</button><button data-v="stalk" onclick="go('stalk')"><b>🔭</b>Approche</button><button data-v="map" onclick="go('map')"><b>🗺️</b>Map</button><button data-v="stats" onclick="go('stats')"><b>📊</b>Season</button></nav>
+<nav><button data-v="home" onclick="go('home')"><svg class="i"><use href="#i-book"/></svg>Carnet</button><button data-v="stalk" onclick="go('stalk')"><svg class="i"><use href="#i-bino"/></svg>Approche</button><button data-v="host" onclick="go('host')"><svg class="i"><use href="#i-users"/></svg>Battue</button><button data-v="map" onclick="go('map')"><svg class="i"><use href="#i-map"/></svg>Carte</button><button data-v="stats" onclick="go('stats')"><svg class="i"><use href="#i-trophy"/></svg>Saison</button></nav>
 <div class="toast" id="toast"></div>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7"/></symbol>
+<symbol id="i-bino" viewBox="0 0 24 24"><circle cx="6.5" cy="15.5" r="3.5"/><circle cx="17.5" cy="15.5" r="3.5"/><path d="M10 15.5h4M4 13l2-8h3l1 8M20 13l-2-8h-3l-1 8"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 21V9M7 14l5-5 5 5M5 3h14"/></symbol>
+<symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+</defs></svg>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const SEX=['Male','Female','Unknown'],SEXI={Male:'♂',Female:'♀',Unknown:'?'},AGE=['Adult','Young','Unknown'],AGEI={Adult:'ad',Young:'juv',Unknown:'?'};
-const sa=x=>`${SEXI[x.sex]||'?'} ${x.sex} · ${x.age||'Unknown'}`;
-function mig(d){[...d.hunts.flatMap(h=>h.kills),...d.sightings].forEach(x=>{if(x.sex==='Young'){x.sex='Unknown';x.age='Young'}x.age=x.age||'Unknown'});return d}
-const TYPES=['Driven hunt / Battue','Stalk / Approche','Walked-up / Devant soi','Wildfowling / Gibier d\'eau','Hide / Affût'];
+const I=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
+const SEX=['Male','Female','Unknown'],SEXI={Male:'♂',Female:'♀',Unknown:'?'},SEXF={Male:'Mâle',Female:'Femelle',Unknown:'Indét.'};
+const AGE=['Adult','Young','Unknown'],AGEI={Adult:'Ad',Young:'Juv',Unknown:'?'},AGEF={Adult:'Adulte',Young:'Jeune',Unknown:'Indét.'};
+const TYPES=['Battue','Approche','Affût','Devant soi','Gibier d\'eau'],TYPEE={'Battue':'Driven hunt','Approche':'Stalk','Affût':'Hide','Devant soi':'Walked-up','Gibier d\'eau':'Wildfowling'};
 const DEF_SP=[
 ['roe','Roe deer','Chevreuil','🦌','big',1],['red','Red deer','Cerf','🦌','big',1],['boar','Wild boar','Sanglier','🐗','big',1],['chamois','Chamois','Chamois','🐐','big',1],['mouflon','Mouflon','Mouflon','🐏','big',1],['fallow','Fallow deer','Daim','🦌','big',1],['fox','Fox','Renard','🦊','big',1],
 ['pheasant','Pheasant','Faisan','🐓','small',1],['greyp','Grey partridge','Perdrix grise','🐦','small',1],['redp','Red-legged partridge','Perdrix rouge','🐦','small',1],['woodcock','Woodcock','Bécasse','🐦','small',1],['mallard','Mallard','Colvert','🦆','small',1],['teal','Teal','Sarcelle','🦆','small',1],['woodpigeon','Woodpigeon','Palombe','🕊️','small',1],['hare','Hare','Lièvre','🐇','small',1],['rabbit','Rabbit','Lapin','🐇','small',1],
 ['badger','Badger','Blaireau','🦡','other',0],['wolf','Wolf','Loup','🐺','other',0],['lynx','Lynx','Lynx','🐈','other',0],['otter','Otter','Loutre','🦦','other',0],['stork','White stork','Cigogne','🦢','other',0],['crane','Common crane','Grue','🦩','other',0],['buzzard','Buzzard','Buse','🦅','other',0],['kite','Red kite','Milan royal','🦅','other',0],['eagle','Eagle','Aigle','🦅','other',0],['owl','Owl','Chouette / Hibou','🦉','other',0],['heron','Grey heron','Héron','🪶','other',0],['songbird','Songbird','Passereau','🐤','other',0]
 ].map(a=>({id:a[0],en:a[1],fr:a[2],ic:a[3],grp:a[4],game:!!a[5]}));
-const GRP={big:'Big game / Grand gibier',small:'Small game / Petit gibier',other:'Other wildlife / Faune non chassable'};
-let D=load();function load(){try{const d=JSON.parse(localStorage.getItem('carnet'));if(d&&d.species)return mig(d)}catch(e){}return{species:DEF_SP,hunts:[],sightings:[]}}
-function save(){try{localStorage.setItem('carnet',JSON.stringify(D))}catch(e){toast('⚠️ Storage full – export & remove photos')}}
-const $=s=>document.querySelector(s),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const sp=id=>D.species.find(s=>s.id===id)||{id,en:id,fr:'',ic:'❔',grp:'other',game:false};
+const GRP={big:['Big game','Grand gibier'],small:['Small game','Petit gibier'],other:['Other wildlife','Faune non chassable']};
+const $=s=>document.querySelector(s),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',1800)}
-function gps(){return new Promise(r=>{if(!navigator.geolocation)return r(null);navigator.geolocation.getCurrentPosition(p=>r([+p.coords.latitude.toFixed(6),+p.coords.longitude.toFixed(6)]),()=>r(null),{enableHighAccuracy:true,timeout:8000,maximumAge:60000})})}
-function fmtD(d){return new Date(d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
-function fmtT(d){return new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
-const nowLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
-let maps=[];function mkMap(el,center){maps.forEach(m=>m.remove());maps=[];if(!window.L){el.innerHTML='<p class="muted" style="padding:20px">Map unavailable offline (Leaflet not loaded).</p>';return null}
-const m=L.map(el).setView(center||[46.6,2.4],center?13:5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(m);maps.push(m);return m}
-function photo(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};im.src=fr.result};fr.readAsDataURL(file)})}
-let view='home',cur=null;
-function go(v,arg){view=v;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);(V[v])(arg)}
-function totals(kills){const t={};kills.forEach(k=>t[k.sp]=(t[k.sp]||0)+(k.n||1));return t}
-function totStr(t){const e=Object.entries(t);return e.length?e.map(([k,n])=>`${sp(k).ic} ${n} ${esc(sp(k).en)}`).join(' · '):'<span class="muted">No game taken / Bredouille</span>'}
-const V={};
-V.home=()=>{$('#title').textContent='Carnet de Chasse';const hs=[...D.hunts].sort((a,b)=>b.date.localeCompare(a.date));
-$('#app').innerHTML=`<button class="btn wide" onclick="newHunt()">＋ New hunt day / Nouvelle journée</button><button class="btn alt wide" onclick="go('stalk')">🔭 Start stalking / Mode Approche</button>
-<h2>My hunts</h2>${hs.length?hs.map(h=>{const t=totals(h.kills),n=Object.values(t).reduce((a,b)=>a+b,0);const ph=h.kills.find(k=>k.photo);
-return`<div class="card" onclick="go('hunt','${h.id}')"><div class="row"><div style="flex:3"><b>${fmtD(h.date)}</b> <span class="tag">${esc(h.type.split(' /')[0])}</span><div class="muted">${esc(h.place||'')} ${h.host?'· invited by '+esc(h.host):''}</div><div style="margin-top:6px">${totStr(t)}</div></div>${ph?`<img src="${ph.photo}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex:0">`:`<div class="stat" style="flex:0">${n}</div>`}</div></div>`}).join(''):'<div class="card muted">No hunts yet. Tap “New hunt day” to start your carnet.</div>'}`};
-function newHunt(){const h={id:uid(),date:new Date().toISOString().slice(0,10),place:'',pos:null,host:'',neighbours:[],type:TYPES[0],kills:[],notes:''};D.hunts.push(h);save();go('hunt',h.id)}
-V.hunt=id=>{const h=D.hunts.find(x=>x.id===id);if(!h)return go('home');cur=h;$('#title').textContent='Hunt day / Journée';const t=totals(h.kills);
-$('#app').innerHTML=`<div class="card"><div class="row"><div><label>Date</label><input type="date" value="${h.date}" onchange="H('date',this.value)"></div></div>
-<label>Place / Lieu</label><input value="${esc(h.place)}" placeholder="Estate, commune…" onchange="H('place',this.value)">
-<label>Location (tap map to set pin)</label><div id="hmap" class="map"></div><button class="btn ghost" onclick="huntGps()">📍 Use my GPS</button>
-<label>Type</label><div class="chips">${TYPES.map(x=>`<button class="chip ${x===h.type?'on':''}" onclick="H('type','${x.replace(/'/g,"\\'")}');go('hunt','${h.id}')">${esc(x)}</button>`).join('')}</div>
-<label>Invited by / Invité par</label><input value="${esc(h.host)}" placeholder="Host name" onchange="H('host',this.value)">
-<label>Neighbours at posts / Voisins de poste</label><div class="chips">${h.neighbours.map((n,i)=>`<button class="chip on" onclick="cur.neighbours.splice(${i},1);save();go('hunt','${h.id}')">${esc(n)} ✕</button>`).join('')}</div>
-<div class="row" style="margin-top:6px"><input id="nb" placeholder="Add a name"><button class="btn" style="flex:0" onclick="addNb()">＋</button></div></div>
-<div class="card"><h3>Tableau · Total: ${h.kills.reduce((a,k)=>a+(k.n||1),0)}</h3><div>${totStr(t)}</div>
-<div class="list">${h.kills.map((k,i)=>`<div class="it">${k.photo?`<img src="${k.photo}">`:`<span style="font-size:32px">${sp(k.sp).ic}</span>`}<div style="flex:1"><b>${esc(sp(k.sp).en)}</b> ${sa(k)} ${k.n>1?'×'+k.n:''}<div class="muted">${k.time||''} ${k.pos?'📍':''} ${esc(k.note||'')}</div></div><button class="chip" onclick="editKill(${i})">✏️</button></div>`).join('')}</div>
-<button class="btn wide" onclick="editKill(-1)">＋ Add animal taken / Ajouter</button></div>
-<div class="card"><label>Notes</label><textarea rows="4" onchange="H('notes',this.value)">${esc(h.notes)}</textarea></div>
-<button class="btn red noprint" onclick="if(confirm('Delete this hunt?')){D.hunts=D.hunts.filter(x=>x!==cur);save();go('home')}">Delete hunt</button>`;
-const m=mkMap($('#hmap'),h.pos);if(m){let mk=h.pos?L.marker(h.pos).addTo(m):null;h.kills.forEach(k=>k.pos&&L.circleMarker(k.pos,{radius:7,color:'#a33b2b'}).addTo(m).bindPopup(sp(k.sp).en));
-m.on('click',e=>{h.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];save();mk?mk.setLatLng(h.pos):mk=L.marker(h.pos).addTo(m)})}};
-function H(k,v){cur[k]=v;save()}
-function addNb(){const v=$('#nb').value.trim();if(v){cur.neighbours.push(v);save();go('hunt',cur.id)}}
-async function huntGps(){toast('Locating…');const p=await gps();if(!p)return toast('GPS unavailable');cur.pos=p;save();go('hunt',cur.id)}
-function spButtons(list,sel,fn){const g={};list.forEach(s=>(g[s.grp]=g[s.grp]||[]).push(s));
-return Object.keys(GRP).filter(k=>g[k]).map(k=>`<h3>${GRP[k]}</h3><div class="grid">${g[k].map(s=>`<button class="sp ${s.grp} ${sel===s.id?'on':''}" onclick="${fn}('${s.id}')"><i>${s.ic}</i>${esc(s.en)}<small>${esc(s.fr)}${s.game?'':' · 🛡️'}</small></button>`).join('')}</div>`).join('')}
-let K=null,KI=-1,showAll=false;
-function editKill(i){KI=i;K=i>=0?{...cur.kills[i]}:{sp:null,sex:'Unknown',age:'Unknown',n:1,time:fmtT(Date.now()),photo:null,pos:null,note:''};renderKill()}
-function renderKill(){const list=showAll?D.species:D.species.filter(s=>s.game);
-$('#app').innerHTML=`<h2>${KI>=0?'Edit':'Add'} animal taken</h2>${spButtons(list,K.sp,'kSp')}
-<button class="chip" style="margin-top:8px" onclick="showAll=!showAll;renderKill()">${showAll?'Game species only':'Show all species'}</button>
-<h3>Sex / Sexe</h3><div class="sex">${SEX.map(s=>`<button style="${K.sex===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="K.sex='${s}';renderKill()">${SEXI[s]}<br>${s}</button>`).join('')}</div>
-<h3>Age / Âge</h3><div class="sex">${AGE.map(s=>`<button style="${K.age===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="K.age='${s}';renderKill()">${AGEI[s]}<br>${s}</button>`).join('')}</div>
-<div class="card"><div class="row"><div><label>Time</label><input type="time" value="${K.time}" onchange="K.time=this.value"></div><div><label>Count</label><input type="number" min="1" value="${K.n}" onchange="K.n=+this.value||1"></div></div>
-<label>Photo</label>${K.photo?`<img src="${K.photo}" style="width:100%;border-radius:10px">`:''}<input type="file" accept="image/*" capture="environment" onchange="photo(this.files[0]).then(p=>{K.photo=p;renderKill()})">
-<label>Pin (tap map)</label><div id="kmap" class="map"></div><button class="btn ghost" onclick="gps().then(p=>{if(p){K.pos=p;renderKill()}else toast('GPS unavailable')})">📍 GPS</button>
-<label>Note</label><input value="${esc(K.note)}" onchange="K.note=this.value" placeholder="Weight, trophy, post n°…"></div>
-<div class="row"><button class="btn ghost" onclick="go('hunt',cur.id)">Cancel</button>${KI>=0?`<button class="btn red" onclick="cur.kills.splice(KI,1);save();go('hunt',cur.id)">Delete</button>`:''}<button class="btn" onclick="saveKill()">Save ✓</button></div>`;
-const m=mkMap($('#kmap'),K.pos||cur.pos);if(m){let mk=K.pos?L.marker(K.pos).addTo(m):null;m.on('click',e=>{K.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];mk?mk.setLatLng(K.pos):mk=L.marker(K.pos).addTo(m)})}}
-function kSp(id){K.sp=id;renderKill()}
-function saveKill(){if(!K.sp)return toast('Pick a species');if(!sp(K.sp).game&&!confirm(sp(K.sp).en+' is marked protected/non-game. Save anyway?'))return;KI>=0?cur.kills[KI]=K:cur.kills.push(K);save();go('hunt',cur.id)}
-let S={sp:null,sex:null,n:1,shot:false};
-V.stalk=()=>{$('#title').textContent='Mode Approche';const today=D.sightings.filter(s=>new Date(s.t).toDateString()===new Date().toDateString()).sort((a,b)=>b.t-a.t);
-$('#app').innerHTML=`<div class="card noprint" style="position:sticky;top:56px;z-index:500">${S.sp?`<b>${sp(S.sp).ic} ${esc(sp(S.sp).en)}</b> – sex, then age saves:`:'<b>1. Species · 2. Sex · 3. Age</b> → saved with time + GPS'}
-<div class="sex">${SEX.map(s=>`<button ${S.sp?'':'disabled style="opacity:.4"'} style="${S.sex===s?'outline:3px solid #2f4a2a;background:#4f6b3a':''}" onclick="S.sex='${s}';V.stalk()">${SEXI[s]}<br>${s}</button>`).join('')}</div>
-<div class="sex">${AGE.map(s=>`<button ${S.sp?'':'disabled style="opacity:.4"'} style="background:#2f4a2a" onclick="sight('${s}')">${AGEI[s]}<br>${s} ✓</button>`).join('')}</div>
-${S.sp?`<button class="btn ghost wide" onclick="sight('Unknown')">⚡ Quick save (${S.sex||'Unknown'} · age unknown)</button>`:''}
-<div class="row"><div class="row" style="flex:2"><button class="btn ghost" onclick="S.n=Math.max(1,S.n-1);V.stalk()">−</button><div style="text-align:center;font-size:22px"><b>${S.n}</b><div class="muted">count</div></div><button class="btn ghost" onclick="S.n++;V.stalk()">＋</button></div>
-<button class="chip ${S.shot?'on':''}" onclick="S.shot=!S.shot;V.stalk()">🎯 Shot ${S.shot?'ON':'off'}</button></div></div>
-<div class="row"><input id="q" placeholder="🔎 Search / add species…" oninput="filt(this.value)"><button class="btn alt" style="flex:0" onclick="addSp($('#q').value)">＋ Add</button></div>
-<div id="spg">${spButtons(D.species,S.sp,'sSp')}</div>
-<h2>Today's sightings (${today.length})</h2><div class="card list">${today.length?today.map(s=>`<div class="it"><span style="font-size:28px">${sp(s.sp).ic}</span><div style="flex:1"><b>${esc(sp(s.sp).en)}</b> ${sa(s)} ×${s.n} ${s.shot?'🎯':''}<div class="muted">${fmtT(s.t)} ${s.pos?'📍 '+s.pos.join(', '):'no GPS'}</div></div><button class="chip" onclick="D.sightings=D.sightings.filter(x=>x.id!=='${s.id}');save();V.stalk()">↶ Undo</button></div>`).join(''):'<span class="muted">Nothing yet.</span>'}</div>
-<div id="smap" class="map"></div>`;
-const m=mkMap($('#smap'),today.find(s=>s.pos)?.pos);if(m)today.forEach(s=>s.pos&&L.circleMarker(s.pos,{radius:7,color:s.shot?'#a33b2b':'#2f4a2a'}).addTo(m).bindPopup(`${sp(s.sp).en} ${sa(s)} ×${s.n} ${fmtT(s.t)}`))};
-function sSp(id){S.sp=id;V.stalk()}
-function filt(q){q=q.toLowerCase();$('#spg').innerHTML=spButtons(D.species.filter(s=>(s.en+' '+s.fr).toLowerCase().includes(q)),S.sp,'sSp')}
-function addSp(name,silent){name=(name||'').trim();if(!name)return toast('Type a species name');const ex=D.species.find(s=>s.en.toLowerCase()===name.toLowerCase()||s.fr.toLowerCase()===name.toLowerCase());if(ex){S.sp=ex.id;return V.stalk()}
-const game=confirm(`Add “${name}”.\nOK = game species (chassable)\nCancel = protected / non-game`);const s={id:'c_'+uid(),en:name,fr:'',ic:game?'🎯':'👁️',grp:'other',game};D.species.push(s);save();S.sp=s.id;toast('Added '+name);V.stalk()}
-async function sight(age){const sex=S.sex||'Unknown';const s={id:uid(),t:Date.now(),sp:S.sp,sex,age,n:S.n,shot:S.shot,pos:null};D.sightings.push(s);save();toast(`✓ ${sp(S.sp).en} ${sex} ${age} ×${S.n}`);navigator.vibrate&&navigator.vibrate(40);
-S={sp:null,sex:null,n:1,shot:false};V.stalk();const p=await gps();if(p){s.pos=p;save();if(view==='stalk')V.stalk()}}
-let F={hunts:1,kills:1,sight:1,sp:'',season:''};
-V.map=()=>{$('#title').textContent='Map / Carte';$('#app').innerHTML=`<div class="chips noprint">${[['hunts','🏕️ Hunts'],['kills','🎯 Kills'],['sight','👁️ Sightings']].map(([k,l])=>`<button class="chip ${F[k]?'on':''}" onclick="F.${k}=!F.${k};go('map')">${l}</button>`).join('')}</div>
-<div class="row" style="margin:8px 0"><select onchange="F.sp=this.value;go('map')"><option value="">All species</option>${D.species.map(s=>`<option value="${s.id}" ${F.sp===s.id?'selected':''}>${esc(s.en)}</option>`).join('')}</select>${seasonSel('go(\'map\')')}</div><div id="bigmap" class="map"></div>`;
-const m=mkMap($('#bigmap'));if(!m)return;const pts=[];const ok=d=>!F.season||season(d)===F.season;
-D.hunts.filter(h=>ok(h.date)).forEach(h=>{if(F.hunts&&h.pos){pts.push(h.pos);L.marker(h.pos).addTo(m).bindPopup(`<b>${fmtD(h.date)}</b><br>${esc(h.place)}<br>${totStr(totals(h.kills))}`)}
-if(F.kills)h.kills.forEach(k=>{const p=k.pos||h.pos;if(p&&(!F.sp||F.sp===k.sp)){pts.push(p);L.circleMarker(p,{radius:8,color:'#a33b2b',fillOpacity:.7}).addTo(m).bindPopup(`🎯 ${sp(k.sp).en} ${sa(k)}<br>${fmtD(h.date)}${k.photo?`<br><img src="${k.photo}" width="120">`:''}`)}})});
-if(F.sight)D.sightings.filter(s=>s.pos&&ok(new Date(s.t).toISOString())&&(!F.sp||F.sp===s.sp)).forEach(s=>{pts.push(s.pos);L.circleMarker(s.pos,{radius:6,color:sp(s.sp).game?'#2f4a2a':'#3a6b8a'}).addTo(m).bindPopup(`👁️ ${sp(s.sp).en} ${sa(s)} ×${s.n}<br>${new Date(s.t).toLocaleString('en-GB')}`)});
-if(pts.length)m.fitBounds(pts,{maxZoom:14,padding:[30,30]})};
-function season(d){const x=new Date(d),y=x.getFullYear();return x.getMonth()>=6?`${y}-${y+1}`:`${y-1}-${y}`}
-function seasons(){return[...new Set([...D.hunts.map(h=>season(h.date)),...D.sightings.map(s=>season(s.t)),season(Date.now())])].sort().reverse()}
+const sa=x=>`${SEXI[x.sex]||'?'} ${SEXF[x.sex]||'Indét.'} · ${AGEF[x.age]||'Indét.'}`;
+function blank(){return{v:3,me:{name:''},species:DEF_SP.map(s=>({...s})),hunts:[],sightings:[],imports:[]}}
+function mig(d){d.v=3;d.me=d.me||{name:''};d.imports=d.imports||[];d.sightings=d.sightings||[];d.hunts=d.hunts||[];
+const fx=x=>{if(x.sex==='Young'){x.sex='Unknown';x.age='Young'}x.sex=x.sex||'Unknown';x.age=x.age||'Unknown';x.id=x.id||uid()};
+d.hunts.forEach(h=>{h.shots=h.shots||[];h.role=h.role||'guest';h.neighbours=h.neighbours||[];h.post=h.post||'';h.type=TYPES.find(t=>h.type&&h.type.toLowerCase().includes(t.toLowerCase().split(' ')[0]))||(h.type&&/driven/i.test(h.type)?'Battue':/walk/i.test(h.type||'')?'Devant soi':/wildfowl/i.test(h.type||'')?"Gibier d'eau":/stalk/i.test(h.type||'')?'Approche':/hide/i.test(h.type||'')?'Affût':h.type||'Battue');h.kills.forEach(fx)});
+d.sightings.forEach(fx);return d}
+let D=load();function load(){try{const d=JSON.parse(localStorage.getItem('carnet'));if(d&&d.species)return mig(d)}catch(e){}return blank()}
+function save(){try{localStorage.setItem('carnet',JSON.stringify(D,(k,v)=>k[0]==='_'?undefined:v))}catch(e){toast('Storage full – export a backup and remove some photos')}}
+const sp=id=>D.species.find(s=>s.id===id)||{id,en:id,fr:'',ic:'❔',grp:'other',game:false};
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2200)}
+const fmtD=d=>new Date(d.length===10?d+'T12:00':d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const fmtT=d=>new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+const ldate=t=>{const d=new Date(t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const today=()=>ldate(Date.now()),hm=()=>fmtT(Date.now());
+const me=()=>D.me.name||'Me';
+/* ---------- GPS ---------- */
+let G=null;
+function gps(fresh){return new Promise(r=>{if(!navigator.geolocation)return r(null);if(!fresh&&G&&Date.now()-G.t<45000)return r(G);
+navigator.geolocation.getCurrentPosition(p=>{G={pos:[+p.coords.latitude.toFixed(6),+p.coords.longitude.toFixed(6)],acc:Math.round(p.coords.accuracy),t:Date.now()};r(G)},()=>r(null),{enableHighAccuracy:true,timeout:10000,maximumAge:fresh?0:30000})})}
+if(navigator.geolocation)try{navigator.geolocation.watchPosition(p=>{G={pos:[+p.coords.latitude.toFixed(6),+p.coords.longitude.toFixed(6)],acc:Math.round(p.coords.accuracy),t:Date.now()};const b=$('#livegps');if(b)b.outerHTML=gpsBar(G,'regps(null)','livegps')},()=>{},{enableHighAccuracy:true,maximumAge:15000})}catch(e){}
+const accC=a=>a==null?'':a<=20?'ok':a<=100?'mid':'bad';
+function gpsBar(o,js,id){const w=o&&o._wait;return`<div class="gps"${id?` id="${id}"`:''}><span class="dot ${w?'wait':accC(o&&o.acc)}"></span><div>${w?'<b>Locating…</b>':o&&o.pos?`<b>±${o.acc??'?'} m</b> · ${o.pos[0].toFixed(5)}, ${o.pos[1].toFixed(5)}<br><span class="muted">${o.acc<=20?'Excellent fix':o.acc<=100?'Fair accuracy':'Weak signal'}</span>`:'<b>No position</b><br><span class="muted">Tap refresh or pin on map</span>'}</div><button class="btn ghost sm" onclick="${js}">${I('refresh')} Refresh</button></div>`}
+async function regps(o,after){if(o){o._wait=1;after&&after()}const f=await gps(true);if(o){delete o._wait;if(f){o.pos=f.pos;o.acc=f.acc;save()}}if(!f)toast('Position unavailable – check location permission');after?after():(view==='stalk'&&V.stalk())}
+async function stamp(o,after){const f=await gps();if(f&&!o.pos){o.pos=f.pos;o.acc=f.acc;save();after&&after()}}
+/* ---------- maps ---------- */
+let maps=[];function mkMap(el,center,z){maps.forEach(m=>m.remove());maps=[];if(!el)return null;if(!window.L){el.innerHTML='<div class="empty">Map unavailable offline</div>';return null}
+const m=L.map(el,{zoomControl:false}).setView(center||[46.6,2.4],center?(z||14):5);L.control.zoom({position:'bottomright'}).addTo(m);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(m);maps.push(m);return m}
+const dot=(p,c,r)=>L.circleMarker(p,{radius:r||7,color:'#fff',weight:2,fillColor:c,fillOpacity:.95});
+const lbl=(p,t)=>L.marker(p,{icon:L.divIcon({className:'',html:`<div style="background:#1b3122;color:#e6c987;border:2px solid #e6c987;border-radius:14px;padding:2px 8px;font:600 12px Inter,sans-serif;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block">${esc(t)}</div>`})});
+/* ---------- media ---------- */
+function resize(src,max,q){return new Promise(r=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',q||.72))};im.onerror=()=>r(null);
+if(typeof src==='string')im.src=src;else{const fr=new FileReader();fr.onload=()=>im.src=fr.result;fr.readAsDataURL(src)}})}
+async function mp4Time(file){const scan=async(st,len)=>{const b=new Uint8Array(await file.slice(st,st+len).arrayBuffer());for(let i=0;i<b.length-24;i++){if(b[i]===109&&b[i+1]===118&&b[i+2]===104&&b[i+3]===100){const dv=new DataView(b.buffer,b.byteOffset+i+4);const v=dv.getUint8(0);const s=v===1?Number(dv.getBigUint64(4)):dv.getUint32(4);const ms=(s-2082844800)*1000;if(ms>946684800000&&ms<4102444800000)return ms}}return null};
+try{return await scan(0,4e6)||(file.size>4e6?await scan(file.size-4e6,4e6):null)}catch(e){return null}}
+function vthumb(file){return new Promise(res=>{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';const u=URL.createObjectURL(file);let done=0;
+const fin=x=>{if(done)return;done=1;URL.revokeObjectURL(u);res(x)};v.onloadeddata=()=>{try{v.currentTime=Math.min(1,(v.duration||2)/2)}catch(e){fin({})}};
+v.onseeked=()=>{try{const k=Math.min(1,480/v.videoWidth),c=document.createElement('canvas');c.width=v.videoWidth*k;c.height=v.videoHeight*k;c.getContext('2d').drawImage(v,0,0,c.width,c.height);fin({thumb:c.toDataURL('image/jpeg',.7),dur:Math.round(v.duration*10)/10})}catch(e){fin({})}};
+v.onerror=()=>fin({});setTimeout(()=>fin({}),9000);v.src=u})}
+function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+async function deflate(str){const b=await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer();let s='';const u=new Uint8Array(b);for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function inflate(b){b=b.replace(/-/g,'+').replace(/_/g,'/');const bin=Uint8Array.from(atob(b),c=>c.charCodeAt(0));return new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()}
+/* ---------- stats helpers ---------- */
+const nK=ks=>ks.reduce((a,k)=>a+(k.n||1),0);
+function totals(ks){const t={};ks.forEach(k=>t[k.sp]=(t[k.sp]||0)+(k.n||1));return t}
+function totStr(t){const e=Object.entries(t);return e.length?e.map(([k,n])=>`<span class="tag g">${sp(k).ic} ${n} ${esc(sp(k).fr||sp(k).en)}</span>`).join(' '):'<span class="muted">Bredouille · nothing taken</span>'}
+const hits=sh=>sh.filter(s=>s.hit===true||s.killId).length;
+const pct=(a,b)=>b?Math.round(a/b*100):null;
+function season(d){const x=new Date(typeof d==='string'&&d.length===10?d+'T12:00':d),y=x.getFullYear();return x.getMonth()>=6?`${y}–${y+1}`:`${y-1}–${y}`}
+function seasons(){return[...new Set([...D.hunts.map(h=>season(h.date)),...D.imports.map(h=>season(h.date)),...D.sightings.map(s=>season(s.t)),season(Date.now())])].sort().reverse()}
+let F={hunts:1,kills:1,shots:1,sight:1,others:1,sp:'',season:''};
 function seasonSel(cb){return`<select onchange="F.season=this.value;${cb}"><option value="">All seasons</option>${seasons().map(s=>`<option ${F.season===s?'selected':''}>${s}</option>`).join('')}</select>`}
-V.stats=()=>{$('#title').textContent='Season / Saison';const ok=d=>!F.season||season(d)===F.season;const hs=D.hunts.filter(h=>ok(h.date)),ss=D.sightings.filter(s=>ok(s.t));
-const kills=hs.flatMap(h=>h.kills),t=totals(kills),tot=kills.reduce((a,k)=>a+(k.n||1),0);const st={};ss.forEach(s=>st[s.sp]=(st[s.sp]||0)+s.n);
-const sexT={};kills.forEach(k=>{sexT[k.sp]=sexT[k.sp]||{};sexT[k.sp]['s'+k.sex]=(sexT[k.sp]['s'+k.sex]||0)+(k.n||1);sexT[k.sp]['a'+k.age]=(sexT[k.sp]['a'+k.age]||0)+(k.n||1)});const hosts={};hs.forEach(h=>h.host&&(hosts[h.host]=(hosts[h.host]||0)+1));
-$('#app').innerHTML=`<div class="noprint">${seasonSel("go('stats')")}</div><h2>Season ${F.season||'(all)'}</h2>
-<div class="row"><div class="card"><div class="stat">${hs.length}</div>hunt days</div><div class="card"><div class="stat">${tot}</div>animals taken</div><div class="card"><div class="stat">${ss.length}</div>sightings</div></div>
-<div class="card"><h3>Tableau de chasse</h3><table><tr><th>Species</th>${SEX.map(s=>`<th>${SEXI[s]}</th>`).join('')}${AGE.map(s=>`<th>${AGEI[s]}</th>`).join('')}<th>Total</th></tr>${Object.keys(t).map(k=>`<tr><td>${sp(k).ic} ${esc(sp(k).en)}</td>${SEX.map(s=>`<td>${sexT[k]['s'+s]||''}</td>`).join('')}${AGE.map(s=>`<td>${sexT[k]['a'+s]||''}</td>`).join('')}<td><b>${t[k]}</b></td></tr>`).join('')||'<tr><td colspan=8 class=muted>None</td></tr>'}</table></div>
-<div class="card"><h3>Observations</h3><table>${Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<tr><td>${sp(k).ic} ${esc(sp(k).en)} ${sp(k).game?'':'<span class=tag>protected</span>'}</td><td><b>${n}</b></td></tr>`).join('')||'<tr><td class=muted>None</td></tr>'}</table></div>
-<div class="card"><h3>Hosts</h3>${Object.entries(hosts).map(([h,n])=>`<span class="tag">${esc(h)} ×${n}</span>`).join(' ')||'<span class=muted>—</span>'}</div>
-<div class="card"><h3>Hunt days</h3><table>${hs.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>`<tr><td>${h.date}</td><td>${esc(h.place)}<br><span class=muted>${esc(h.host)} · ${esc(h.neighbours.join(', '))}</span></td><td>${totStr(totals(h.kills))}</td></tr>`).join('')}</table></div>
-<div class="noprint"><button class="btn wide" onclick="print()">🖨️ Printable report / PDF</button><button class="btn alt wide" onclick="csv()">⬇️ Export CSV</button><button class="btn ghost wide" onclick="go('settings')">Backup & settings</button></div>`};
-function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click()}
-function csv(){const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const r=[['record','date','time','species','species_fr','game','sex','age','count','shot','lat','lon','place','host','neighbours','type','note']];
-D.hunts.forEach(h=>h.kills.forEach(k=>{const p=k.pos||h.pos||[];r.push(['kill',h.date,k.time,sp(k.sp).en,sp(k.sp).fr,sp(k.sp).game,k.sex,k.age,k.n,1,p[0],p[1],h.place,h.host,h.neighbours.join('; '),h.type,k.note])}));
-D.sightings.forEach(s=>{const d=new Date(s.t),p=s.pos||[];r.push(['sighting',d.toISOString().slice(0,10),fmtT(s.t),sp(s.sp).en,sp(s.sp).fr,sp(s.sp).game,s.sex,s.age,s.n,s.shot?1:0,p[0],p[1],'','','','',''])});
-dl('carnet-'+new Date().toISOString().slice(0,10)+'.csv',r.map(x=>x.map(q).join(',')).join('\n'),'text/csv')}
-V.settings=()=>{$('#title').textContent='Settings / Réglages';$('#app').innerHTML=`<div class="card"><h3>Backup</h3><button class="btn wide" onclick="dl('carnet-backup.json',JSON.stringify(D),'application/json')">⬇️ Export JSON backup</button>
-<label>Import JSON backup (replaces data)</label><input type="file" accept=".json,application/json" onchange="imp(this.files[0])"><button class="btn alt wide" onclick="csv()">⬇️ Export CSV</button>
-<p class="muted">Storage used: ${(JSON.stringify(D).length/1024).toFixed(0)} KB (browser limit ≈5 MB)</p></div>
-<div class="card"><h3>Species / Espèces</h3><p class="muted">Tap 🎯/🛡️ to toggle game vs protected. Only game species appear in the “taken” picker.</p><div class="list">${D.species.map((s,i)=>`<div class="it"><input style="width:56px;flex:0" value="${s.ic}" onchange="D.species[${i}].ic=this.value;save()"><div style="flex:1"><input value="${esc(s.en)}" onchange="D.species[${i}].en=this.value;save()"><input value="${esc(s.fr)}" placeholder="French" onchange="D.species[${i}].fr=this.value;save()"></div>
-<div style="flex:0"><select style="width:90px" onchange="D.species[${i}].grp=this.value;save()">${Object.keys(GRP).map(g=>`<option value="${g}" ${s.grp===g?'selected':''}>${g}</option>`).join('')}</select><button class="chip" onclick="D.species[${i}].game=!D.species[${i}].game;save();go('settings')">${s.game?'🎯 game':'🛡️ prot.'}</button><button class="chip" onclick="D.species.splice(${i},1);save();go('settings')">🗑️</button></div></div>`).join('')}</div>
-<div class="row"><input id="ns" placeholder="New species name"><button class="btn" style="flex:0" onclick="D.species.push({id:'c_'+uid(),en:$('#ns').value||'New',fr:'',ic:'❔',grp:'other',game:false});save();go('settings')">＋</button></div>
-<button class="btn ghost wide" onclick="if(confirm('Reset species list to defaults?')){D.species=DEF_SP;save();go('settings')}">Reset species list</button></div>
-<div class="card"><button class="btn ghost wide" onclick="loadDemo()">Load demo data</button><button class="btn red wide" onclick="if(confirm('Erase ALL data?')){localStorage.removeItem('carnet');D=load();go('home')}">Erase all data</button></div>`};
-function imp(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.species)throw 0;D=mig(d);save();toast('Imported');go('home')}catch(e){toast('Invalid backup file')}};r.readAsText(f)}
-function loadDemo(){const c=[47.35,1.75],j=()=>[+(c[0]+(Math.random()-.5)*.04).toFixed(5),+(c[1]+(Math.random()-.5)*.04).toFixed(5)];
-D.hunts.push({id:uid(),date:'2026-10-04',place:'Domaine des Chênes, Sologne',pos:c,host:'Henri Dubois',neighbours:['Marc','Sophie','Jean-Luc'],type:TYPES[0],notes:'Beautiful morning, 6 traques.',kills:[{sp:'boar',sex:'Male',age:'Adult',n:1,time:'10:40',pos:j(),note:'78 kg'},{sp:'roe',sex:'Female',n:1,time:'14:15',pos:j(),note:''}]},
-{id:uid(),date:'2026-09-27',place:'Plaine de Beauce',pos:[48.2,1.6],host:'Claire Martin',neighbours:['Paul'],type:TYPES[2],notes:'',kills:[{sp:'pheasant',sex:'Male',n:3,time:'11:00'},{sp:'greyp',sex:'Unknown',n:2,time:'15:30'}]});
-[['roe','Female','Adult',2],['red','Male','Adult',1],['buzzard','Unknown','Unknown',1],['crane','Unknown','Adult',14],['boar','Unknown','Young',5]].forEach(([s,x,a,n],i)=>D.sightings.push({id:uid(),t:Date.now()-i*900000,sp:s,sex:x,age:a,n,shot:false,pos:j()}));mig(D);save();go('home')}
+/* ---------- routing ---------- */
+let view='home',cur=null;const V={};
+function title(t,s){$('#title').innerHTML=`${t}<small>${s}</small>`}
+function go(v,arg){view=v;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='hunt'&&b.dataset.v==='home')));window.scrollTo(0,0);V[v](arg)}
+/* ---------- HOME ---------- */
+V.home=()=>{title('Carnet de Chasse','Hunting logbook');const hs=[...D.hunts].sort((a,b)=>b.date.localeCompare(a.date));const ss=season(Date.now());
+const sh=D.hunts.filter(h=>season(h.date)===ss),k=nK(sh.flatMap(h=>h.kills)),s=sh.reduce((a,h)=>a+h.shots.length,0);
+$('#app').innerHTML=`<div class="hero"><div class="eyebrow">Saison ${ss}</div><h2>${D.me.name?'Bonjour, '+esc(D.me.name.split(' ')[0]):'Bienvenue'}</h2><p>Log a day as host or guest, record every shot and sighting, and share your tableau in one tap.</p>
+<div class="acts"><button class="btn brass" onclick="newHunt('host')">${I('users')} Host a day</button><button class="btn ghost" onclick="newHunt('guest')">${I('plus')} Join as guest</button></div>
+<button class="btn ghost wide" style="margin-top:10px" onclick="go('stalk')">${I('bino')} Mode Approche · quick sightings</button></div>
+${D.me.name?'':`<div class="card"><h3>${I('users')}<span class="sp">Your hunter name</span></h3><p class="muted" style="margin-top:0">Shown to hosts when you share your day, and on the season leaderboard.</p><div class="row"><input id="nm" placeholder="e.g. Antoine Laurent"><button class="btn" style="flex:0" onclick="if($('#nm').value.trim()){D.me.name=$('#nm').value.trim();save();go('home')}">Save</button></div></div>`}
+<div class="kpis"><div class="kpi"><b>${sh.length}</b><span>days</span></div><div class="kpi"><b>${k}</b><span>taken</span></div><div class="kpi"><b>${pct(k,s)??'–'}${s?'%':''}</b><span>accuracy</span></div></div>
+<h2>Mes journées</h2>${hs.length?hs.map(h=>{const t=totals(h.kills),ph=h.kills.find(k=>k.photo)||h.shots.find(x=>x.clip&&x.clip.thumb);const img=ph?(ph.photo||ph.clip.thumb):null;
+return`<div class="card" style="cursor:pointer" onclick="go('hunt','${h.id}')"><div class="row" style="align-items:flex-start">${img?`<img class="thumb" src="${img}" style="width:72px;height:72px">`:`<div class="emo" style="width:72px;height:72px">${I('cal')}</div>`}<div style="flex:3">
+<div class="eyebrow">${fmtD(h.date)}</div><div style="font:600 19px var(--serif);margin:2px 0">${esc(h.place||'Untitled day')}</div><div class="muted">${h.role==='host'?'<span class="tag">Host</span>':'<span class="tag">Guest</span>'}${esc(h.type)}${h.role==='guest'&&h.host?' · chez '+esc(h.host):''}${h.post?' · poste '+esc(h.post):''}</div>
+<div style="margin-top:8px">${totStr(t)} ${h.shots.length?`<span class="tag">${I('target').replace('class="i"','class="i" style="width:12px;height:12px"')} ${h.shots.length} shot${h.shots.length>1?'s':''}</span>`:''}</div></div><div style="flex:0;color:var(--m)">${I('chev')}</div></div></div>`}).join('')
+:`<div class="card empty">${I('book').replace('class="i"','class="i" style="width:44px;height:44px"')}<div style="font:600 20px var(--serif);color:var(--t)">Your carnet is empty</div><p>Start a day as host or guest. Everything stays on this phone until you share it.</p></div>`}`};
+async function newHunt(role){const h={id:uid(),date:today(),place:'',pos:null,acc:null,role,host:role==='host'?me():'',post:'',neighbours:[],type:'Battue',kills:[],shots:[],notes:''};D.hunts.push(h);save();h._wait=1;go('hunt',h.id);
+const f=await gps(true);delete h._wait;if(f){h.pos=f.pos;h.acc=f.acc;save()}if(view==='hunt'&&cur===h)V.hunt(h.id)}
+/* ---------- HUNT DAY ---------- */
+V.hunt=id=>{const srt=[...D.hunts].sort((a,b)=>b.date.localeCompare(a.date));const h=D.hunts.find(x=>x.id===id)||(id===undefined&&(srt.find(x=>x.kills.length)||srt[0]));if(!h)return go('home');cur=h;title(fmtD(h.date),h.role==='host'?'Hosting · Organisateur':'Guest · Invité');
+const hi=hits(h.shots),n=nK(h.kills);const shots=[...h.shots].sort((a,b)=>b.t-a.t);
+$('#app').innerHTML=`<div class="role noprint" style="margin-bottom:14px"><button class="${h.role==='host'?'on':''}" onclick="setRole('host')">I'm hosting</button><button class="${h.role==='guest'?'on':''}" onclick="setRole('guest')">I'm a guest</button></div>
+<div class="card"><h3>${I('cal')}<span class="sp">La journée</span></h3><div class="row"><div><label>Date</label><input type="date" value="${h.date}" onchange="H('date',this.value);V.hunt(cur.id)"></div><div><label>Poste n°</label><input value="${esc(h.post)}" inputmode="numeric" placeholder="—" onchange="H('post',this.value)"></div></div>
+<label>Place · Lieu</label><input value="${esc(h.place)}" placeholder="Estate, commune…" onchange="H('place',this.value)">
+<label>Type</label><div class="chips">${TYPES.map((x,i)=>`<button class="chip ${x===h.type?'on':''}" onclick="H('type',TYPES[${i}]);V.hunt(cur.id)">${esc(x)}</button>`).join('')}</div>
+${h.role==='guest'?`<label>Invited by · Invité par</label><input value="${esc(h.host)}" placeholder="Host name" onchange="H('host',this.value)">`:''}
+<label>Voisins de poste · Neighbours</label><div class="chips">${h.neighbours.map((x,i)=>`<button class="chip on" onclick="cur.neighbours.splice(${i},1);save();V.hunt(cur.id)">${esc(x)} ${I('x')}</button>`).join('')}</div>
+<div class="row" style="margin-top:8px"><input id="nb" placeholder="Add a neighbour" onkeydown="if(event.key==='Enter')addNb()"><button class="btn" style="flex:0" onclick="addNb()">${I('plus')}</button></div></div>
+<div class="card"><h3>${I('pin')}<span class="sp">Position</span></h3>${gpsBar(h,'regps(cur,()=>V.hunt(cur.id))')}<div id="hmap" class="map"></div><div class="muted">Tap the map to place your post manually.</div></div>
+<div class="card"><h3>${I('target')}<span class="sp">Tirs · Shots</span></h3><button class="shotbtn" onclick="addShot()">${I('target').replace('class="i"','class="i" style="width:34px;height:34px"')} +1 Shot</button>
+<div class="counter"><div><b>${h.shots.length}</b><span>shots</span></div><div><b>${hi}</b><span>hits</span></div><div><b>${h.shots.filter(s=>s.hit===false).length}</b><span>misses</span></div><div><b>${pct(n,h.shots.length)??'–'}${h.shots.length?'%':''}</b><span>accuracy</span></div></div>
+<label class="btn ghost wide" style="text-transform:none;letter-spacing:0;font:600 15px var(--sans);color:var(--t)">${I('video')} Import Shotkam clips<input type="file" accept="video/*,image/*" multiple class="hide" onchange="importClips(this.files)"></label>
+<div class="list">${shots.map(s=>shotRow(h,s)).join('')||'<div class="muted" style="padding:8px 0">Each shot is stamped with time and GPS. Clips from your gun camera attach to the nearest shot.</div>'}</div></div>
+<div class="card"><h3>${I('trophy')}<span class="sp">Tableau · ${n}</span></h3><div style="margin-bottom:8px">${totStr(totals(h.kills))}</div>
+<div class="list">${h.kills.map((k,i)=>{const ns=h.shots.filter(s=>s.killId===k.id).length;return`<div class="it" onclick="editKill(${i})" style="cursor:pointer">${k.photo?`<img src="${k.photo}">`:k.clip&&k.clip.thumb?`<img src="${k.clip.thumb}">`:`<div class="emo">${sp(k.sp).ic}</div>`}<div style="flex:1"><b>${esc(sp(k.sp).fr||sp(k.sp).en)}</b>${k.n>1?' ×'+k.n:''}<div class="muted">${sa(k)}</div><div class="muted">${k.time||''} ${k.pos?`· <span class="dot ${accC(k.acc)}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${k.acc<=20?'var(--ok)':k.acc<=100?'var(--warn)':'var(--r)'}"></span> ±${k.acc??'?'} m`:'· no GPS'}${ns?` · ${ns} shot${ns>1?'s':''}`:''}</div></div>${I('chev')}</div>`}).join('')}</div>
+<button class="btn wide" onclick="editKill(-1)">${I('plus')} Add animal taken</button></div>
+<div class="card noprint"><h3>${I(h.role==='host'?'users':'share')}<span class="sp">${h.role==='host'?'Battue summary':'Send to host'}</span></h3>
+${h.role==='host'?`<p class="muted" style="margin-top:0">Collect each guest's day (file or link) to build the full tableau, map of posts and accuracy.</p><button class="btn brass wide" onclick="F.hostDate='${h.date}';go('host')">${I('users')} Open battue summary</button>`:`<p class="muted" style="margin-top:0">Send ${esc(h.host||'your host')} your shots, kills, sightings and thumbnails as one small file.</p>`}
+<div class="row"><button class="btn ${h.role==='host'?'ghost':'brass'}" onclick="shareDay()">${I('share')} Share file</button><button class="btn ghost" onclick="shareLink()">${I('link')} Link</button></div><div id="linkbox"></div></div>
+<div class="card"><label style="margin-top:0">Notes</label><textarea rows="4" onchange="H('notes',this.value)" placeholder="Weather, traques, dogs…">${esc(h.notes)}</textarea></div>
+<button class="btn ghost wide noprint" style="color:var(--r)" onclick="if(confirm('Delete this day and all its entries?')){D.hunts=D.hunts.filter(x=>x!==cur);save();go('home')}">${I('trash')} Delete day</button>`;
+const m=mkMap($('#hmap'),h.pos,15);if(m){let mk=h.pos?lbl(h.pos,h.post?'Poste '+h.post:'Me').addTo(m):null;h.kills.forEach(k=>k.pos&&dot(k.pos,'#9b3a2a',8).addTo(m).bindPopup(`${sp(k.sp).en} · ${sa(k)}`));h.shots.forEach(s=>s.pos&&dot(s.pos,'#b08a46',5).addTo(m).bindPopup('Shot '+fmtT(s.t)));
+m.on('click',e=>{h.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];h.acc=0;save();V.hunt(h.id)})}};
+function shotRow(h,s){return`<div class="it">${s.clip&&s.clip.thumb?`<img src="${s.clip.thumb}" title="${esc(s.clip.name)}">`:`<div class="emo">${I('target')}</div>`}<div style="flex:1"><b>${fmtT(s.t)}</b> ${s.clip?`<span class="tag">${I('video').replace('class="i"','class="i" style="width:12px;height:12px"')} ${esc(s.clip.name)}</span>`:''}
+<div class="muted">${s.pos?`±${s.acc??'?'} m`:'no GPS'} ${s.killId?'· '+esc(sp((h.kills.find(k=>k.id===s.killId)||{}).sp).en):''}</div>
+<div class="chips" style="margin-top:6px"><button class="chip ${s.hit===true||s.killId?'on':''}" onclick="setHit('${s.id}',true)">Hit</button><button class="chip ${s.hit===false&&!s.killId?'on':''}" onclick="setHit('${s.id}',false)">Miss</button>
+<select style="width:auto;flex:1;min-height:44px;padding:8px" onchange="linkShot('${s.id}',this.value)"><option value="">Animal…</option>${h.kills.map(k=>`<option value="${k.id}" ${s.killId===k.id?'selected':''}>${esc(sp(k.sp).en)} ${k.time||''}</option>`).join('')}</select>
+<button class="chip" onclick="delShot('${s.id}')">${I('trash')}</button></div></div></div>`}
+function H(k,v){cur[k]=v;save()}
+function setRole(r){cur.role=r;if(r==='host')cur.host=me();else if(cur.host===me())cur.host='';save();V.hunt(cur.id)}
+function addNb(){const v=$('#nb').value.trim();if(v){cur.neighbours.push(v);save();V.hunt(cur.id)}}
+async function addShot(killId,after){const h=cur,s={id:uid(),t:Date.now(),pos:null,acc:null,hit:killId?true:null,killId:killId||null};h.shots.push(s);save();navigator.vibrate&&navigator.vibrate(60);toast('Shot logged · '+fmtT(s.t));(after||(()=>V.hunt(h.id)))();
+const f=await gps();if(f){s.pos=f.pos;s.acc=f.acc;save();if(!after&&view==='hunt'&&cur===h)V.hunt(h.id)}}
+function setHit(id,v){const s=cur.shots.find(x=>x.id===id);s.hit=v;if(!v)s.killId=null;save();V.hunt(cur.id)}
+function linkShot(id,k){const s=cur.shots.find(x=>x.id===id);s.killId=k||null;if(k)s.hit=true;save();V.hunt(cur.id)}
+function delShot(id){cur.shots=cur.shots.filter(x=>x.id!==id);save();V.hunt(cur.id)}
+async function importClips(files){files=[...files];if(!files.length)return;toast(`Reading ${files.length} file${files.length>1?'s':''}…`);let att=0,cre=0;
+for(const f of files){const isV=f.type.startsWith('video')||/\.(mp4|mov|m4v)$/i.test(f.name);const mt=isV?await mp4Time(f):null;const t=mt||f.lastModified||Date.now();
+const th=isV?await vthumb(f):{thumb:await resize(f,480,.7)};const clip={name:f.name,t,src:mt?'mp4':'file',thumb:th.thumb||null,dur:th.dur||null};
+const day=ldate(t);let h=(cur&&cur.date===day)?cur:D.hunts.find(x=>x.date===day);if(!h){h={id:uid(),date:day,place:'',pos:null,acc:null,role:'guest',host:'',post:'',neighbours:[],type:'Battue',kills:[],shots:[],notes:''};D.hunts.push(h)}
+const cands=[...h.shots.filter(s=>!s.clip).map(s=>({o:s,t:s.t})),...h.kills.filter(k=>!k.clip&&k.time).map(k=>({o:k,t:new Date(h.date+'T'+k.time).getTime()}))];
+let best=null;cands.forEach(c=>{const d=Math.abs(c.t-t);if(d<=15*60000&&(!best||d<best.d))best={...c,d}});
+if(best){best.o.clip=clip;att++}else{h.shots.push({id:uid(),t,pos:null,acc:null,hit:null,killId:null,clip});cre++}}
+save();toast(`${att} clip${att!==1?'s':''} attached · ${cre} new shot${cre!==1?'s':''}`);V.hunt(cur&&D.hunts.includes(cur)?cur.id:undefined)}
+/* ---------- KILL EDITOR ---------- */
+let K=null,KI=-1,showAll=false;
+function editKill(i){KI=i;K=i>=0?{...cur.kills[i]}:{id:uid(),sp:null,sex:'Unknown',age:'Unknown',n:1,time:hm(),photo:null,pos:null,acc:null,note:''};renderKill();if(i<0){K._wait=1;renderKill();gps(true).then(f=>{delete K._wait;if(f){K.pos=f.pos;K.acc=f.acc}if(view==='kill')renderKill()})}}
+function spGrid(list,sel,fn){const g={};list.forEach(s=>(g[s.grp]=g[s.grp]||[]).push(s));
+return Object.keys(GRP).filter(k=>g[k]).map(k=>`<div class="eyebrow" style="margin:14px 0 8px">${GRP[k][0]} · ${GRP[k][1]}</div><div class="grid">${g[k].map(s=>`<button class="tile ${sel===s.id?'on':''} ${s.game?'':'prot'}" onclick="${fn}('${s.id}')"><i>${s.ic}</i>${esc(s.fr||s.en)}<small>${esc(s.en)}</small></button>`).join('')}</div>`).join('')}
+const seg=(arr,ic,fr,val,js,go)=>`<div class="seg ${go?'go':''}">${arr.map(s=>`<button class="${val===s?'on':''}" onclick="${js.replace('$',s)}"><b>${ic[s]}</b>${fr[s]}</button>`).join('')}</div>`;
+function renderKill(){view='kill';const list=showAll?D.species:D.species.filter(s=>s.game);const ns=cur.shots.filter(s=>s.killId===K.id).length;title(KI>=0?'Edit animal':'Animal taken','Tableau · '+fmtD(cur.date));
+$('#app').innerHTML=`<div class="card"><h3><span class="sp">Espèce</span><button class="chip" onclick="showAll=!showAll;renderKill()">${showAll?'Game only':'All species'}</button></h3>${spGrid(list,K.sp,'kSp')}</div>
+<div class="card"><h3>Sexe · Sex</h3>${seg(SEX,SEXI,SEXF,K.sex,"K.sex='$';renderKill()")}<h3 style="margin-top:14px">Âge · Age</h3>${seg(AGE,AGEI,AGEF,K.age,"K.age='$';renderKill()")}
+<div class="row"><div><label>Time</label><input type="time" value="${K.time}" onchange="K.time=this.value"></div><div><label>Count</label><div class="stepper"><button onclick="K.n=Math.max(1,K.n-1);renderKill()">−</button><b>${K.n}</b><button onclick="K.n++;renderKill()">+</button></div></div></div></div>
+<div class="card"><h3>${I('target')}<span class="sp">Shots at this animal · ${ns}</span><button class="chip" onclick="addShot('${K.id}',renderKill)">${I('plus')} Shot</button></h3><div class="muted">Each tap logs a hit with time and GPS.</div></div>
+<div class="card"><h3>${I('cam')}<span class="sp">Photo</span></h3>${K.photo?`<img src="${K.photo}" style="width:100%;border-radius:14px">`:''}${K.clip&&K.clip.thumb?`<div class="muted">Shotkam: ${esc(K.clip.name)}</div><img src="${K.clip.thumb}" style="width:100%;border-radius:14px">`:''}
+<label class="btn ghost wide" style="text-transform:none;letter-spacing:0;font:600 15px var(--sans);color:var(--t)">${I('cam')} ${K.photo?'Replace':'Take or choose'} photo<input type="file" accept="image/*" capture="environment" class="hide" onchange="resize(this.files[0],800).then(p=>{K.photo=p;renderKill()})"></label></div>
+<div class="card"><h3>${I('pin')}<span class="sp">Position</span></h3>${gpsBar(K,'regps(K,renderKill)')}<div id="kmap" class="map"></div>
+<label>Note</label><input value="${esc(K.note)}" onchange="K.note=this.value" placeholder="Weight, trophy, tracking…"></div>
+<div class="row" style="position:sticky;bottom:90px"><button class="btn ghost" style="background:var(--card)" onclick="cancelKill()">Cancel</button>${KI>=0?`<button class="btn red" onclick="cur.kills.splice(KI,1);cancelKill()">${I('trash')}</button>`:''}<button class="btn" style="flex:2" onclick="saveKill()">${I('check')} Save</button></div>`;
+const m=mkMap($('#kmap'),K.pos||cur.pos,15);if(m){if(K.pos)dot(K.pos,'#9b3a2a',9).addTo(m);m.on('click',e=>{K.pos=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];K.acc=0;renderKill()})}}
+function kSp(id){K.sp=id;renderKill()}
+function cancelKill(){cur.shots.forEach(s=>{if(s.killId&&!cur.kills.find(k=>k.id===s.killId))s.killId=null});save();V.hunt(cur.id)}
+function saveKill(){if(!K.sp)return toast('Choose a species');if(!sp(K.sp).game&&!confirm(sp(K.sp).en+' is marked protected / non-game. Save anyway?'))return;delete K._wait;KI>=0?cur.kills[KI]=K:cur.kills.push(K);save();toast('Saved to tableau');V.hunt(cur.id)}
+/* ---------- STALKING ---------- */
+let S={sp:null,sex:null,n:1,shot:false};
+V.stalk=()=>{title('Mode Approche','Species · sex · age');const td=D.sightings.filter(s=>ldate(s.t)===today()).sort((a,b)=>b.t-a.t);const dis=S.sp?'':'disabled';
+$('#app').innerHTML=`${gpsBar(G,'regps(null)','livegps')}
+<div class="card" style="position:sticky;top:76px;z-index:600"><div class="eyebrow">${S.sp?`${sp(S.sp).ic} ${esc(sp(S.sp).fr||sp(S.sp).en)} · choose sex, tap age to save`:'1 · Species  2 · Sex  3 · Age saves'}</div>
+<div class="seg">${SEX.map(s=>`<button ${dis} class="${S.sex===s?'on':''}" onclick="S.sex='${s}';V.stalk()"><b>${SEXI[s]}</b>${SEXF[s]}</button>`).join('')}</div>
+<div class="seg go">${AGE.map(s=>`<button ${dis} onclick="sight('${s}')"><b>${AGEI[s]}</b>${AGEF[s]} ✓</button>`).join('')}</div>
+<div class="row"><div class="stepper" style="flex:0"><button onclick="S.n=Math.max(1,S.n-1);V.stalk()">−</button><b>${S.n}</b><button onclick="S.n++;V.stalk()">+</button></div><button class="chip ${S.shot?'on':''}" onclick="S.shot=!S.shot;V.stalk()">${I('target')} Shot</button>${S.sp?`<button class="chip" onclick="sight('Unknown')">Quick save</button>`:''}</div></div>
+<div class="row"><input id="q" placeholder="Search or add a species…" oninput="filt(this.value)"><button class="btn brass" style="flex:0" onclick="addSp($('#q').value)">${I('plus')}</button></div>
+<div id="spg">${spGrid(D.species,S.sp,'sSp')}</div>
+<h2 style="margin-top:22px">Aujourd'hui · ${td.length}</h2><div class="card list">${td.length?td.map(s=>`<div class="it"><div class="emo">${sp(s.sp).ic}</div><div style="flex:1"><b>${esc(sp(s.sp).fr||sp(s.sp).en)}</b> ×${s.n} ${s.shot?'<span class="tag r">shot</span>':''}${sp(s.sp).game?'':'<span class="tag">protégé</span>'}<div class="muted">${sa(s)}</div><div class="muted">${fmtT(s.t)} · ${s.pos?'±'+(s.acc??'?')+' m':'no GPS'}</div></div><button class="chip" onclick="resight('${s.id}')" aria-label="Refresh position">${I('refresh')}</button><button class="chip" onclick="D.sightings=D.sightings.filter(x=>x.id!=='${s.id}');save();V.stalk()" aria-label="Undo">${I('undo')}</button></div>`).join(''):'<div class="muted">No sightings yet today.</div>'}</div>
+<div id="smap" class="map"></div>`;
+const m=mkMap($('#smap'),(td.find(s=>s.pos)||G||{}).pos,14);if(m)td.forEach(s=>s.pos&&dot(s.pos,s.shot?'#9b3a2a':sp(s.sp).game?'#2c4a34':'#3b6e8f').addTo(m).bindPopup(`${sp(s.sp).en} · ${sa(s)} ×${s.n}<br>${fmtT(s.t)} ±${s.acc} m`))};
+function sSp(id){S.sp=id;V.stalk()}
+function filt(q){q=q.toLowerCase();$('#spg').innerHTML=spGrid(D.species.filter(s=>(s.en+' '+s.fr).toLowerCase().includes(q)),S.sp,'sSp')}
+function addSp(name){name=(name||'').trim();if(!name)return toast('Type a species name');const ex=D.species.find(s=>s.en.toLowerCase()===name.toLowerCase()||(s.fr||'').toLowerCase()===name.toLowerCase());if(ex){S.sp=ex.id;return V.stalk()}
+const game=confirm(`Add “${name}” to your species.\n\nOK = game species (chassable)\nCancel = protected / non-game`);const s={id:'c_'+uid(),en:name,fr:name,ic:game?'🎯':'👁️',grp:game?'big':'other',game};D.species.push(s);save();S.sp=s.id;toast('Added '+name);V.stalk()}
+async function sight(age){const s={id:uid(),t:Date.now(),sp:S.sp,sex:S.sex||'Unknown',age,n:S.n,shot:S.shot,pos:null,acc:null};D.sightings.push(s);save();navigator.vibrate&&navigator.vibrate(40);toast(`✓ ${sp(s.sp).fr||sp(s.sp).en} · ${SEXF[s.sex]} · ${AGEF[age]} ×${s.n}`);
+S={sp:null,sex:null,n:1,shot:false};V.stalk();const f=await gps();if(f){s.pos=f.pos;s.acc=f.acc;save();if(view==='stalk')V.stalk()}}
+function resight(id){const s=D.sightings.find(x=>x.id===id);regps(s,()=>view==='stalk'&&V.stalk())}
+/* ---------- SHARE / IMPORT ---------- */
+async function dayPack(h,thumbs){const sg=D.sightings.filter(s=>ldate(s.t)===h.date);const th=async x=>thumbs&&x?await resize(x,240,.6):undefined;
+const kills=[];for(const k of h.kills)kills.push({id:k.id,sp:k.sp,sex:k.sex,age:k.age,n:k.n,time:k.time,pos:k.pos,acc:k.acc,note:k.note,thumb:await th(k.photo||(k.clip&&k.clip.thumb)),clip:k.clip?{name:k.clip.name,t:k.clip.t}:undefined});
+const shots=[];for(const s of h.shots)shots.push({id:s.id,t:s.t,pos:s.pos,acc:s.acc,hit:s.hit,killId:s.killId,clip:s.clip?{name:s.clip.name,t:s.clip.t,thumb:await th(s.clip.thumb)}:undefined});
+const used=new Set([...kills.map(k=>k.sp),...sg.map(s=>s.sp)]);
+return{format:'carnet-day',v:1,hunter:me(),date:h.date,place:h.place,post:h.post,pos:h.pos,acc:h.acc,host:h.host,type:h.type,species:D.species.filter(s=>used.has(s.id)).map(({id,en,fr,ic,grp,game})=>({id,en,fr,ic,grp,game})),kills,shots,sightings:sg.map(({id,t,sp,sex,age,n,shot,pos,acc})=>({id,t,sp,sex,age,n,shot,pos,acc})),sent:Date.now()}}
+const fname=h=>`${h.date}-${(me()).replace(/[^\w]+/g,'-')}.carnet`;
+async function shareDay(){const h=cur,p=await dayPack(h,true),js=JSON.stringify(p),file=new File([js],fname(h),{type:'application/json'});
+try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Carnet de Chasse – '+h.date,text:`${me()} · ${fmtD(h.date)} · ${nK(h.kills)} taken, ${h.shots.length} shots`});return}}catch(e){if(e.name==='AbortError')return}
+dl(fname(h),js,'application/json');toast('Saved '+fname(h)+' – send it to your host')}
+async function shareLink(){const p=await dayPack(cur,false),z=await deflate(JSON.stringify(p));const url=location.href.split('#')[0].split('?')[0]+'#import='+z;
+if(url.length>7500){$('#linkbox').innerHTML='<p class="muted">This day is too large for a link – use Share file.</p>';return}
+$('#linkbox').innerHTML=`<label>Link (no photos · ${Math.round(url.length/100)/10} k chars)</label><input readonly value="${esc(url)}" onclick="this.select()">`;
+try{if(navigator.share){await navigator.share({title:'Carnet de Chasse – '+cur.date,url});return}}catch(e){if(e.name==='AbortError')return}
+try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(e){}}
+function addImport(p){if(!p||p.format!=='carnet-day')throw new Error('Not a Carnet day file');(p.species||[]).forEach(s=>{if(!D.species.find(x=>x.id===s.id))D.species.push({...s})});
+D.imports=D.imports.filter(x=>!(x.hunter===p.hunter&&x.date===p.date));p._id=uid();p.recv=Date.now();D.imports.push(p);return p}
+function readFiles(files){return Promise.all([...files].map(f=>f.text().then(t=>{try{return JSON.parse(t)}catch(e){return null}})))}
+async function importDays(files){const ps=await readFiles(files);let n=0,d=null;ps.forEach(p=>{try{const x=addImport(p);n++;d=x.date}catch(e){}});save();toast(n?`Imported ${n} hunter day${n>1?'s':''}`:'No valid .carnet files');if(d)F.hostDate=d;go('host')}
+/* ---------- BATTUE (HOST) ---------- */
+function hunterDays(date){const out=[];const mine=D.hunts.find(h=>h.date===date);if(mine)out.push({hunter:me(),mine:true,post:mine.post,pos:mine.pos,kills:mine.kills,shots:mine.shots,sightings:D.sightings.filter(s=>ldate(s.t)===date),place:mine.place,host:mine.role==='host'?me():mine.host,role:mine.role,thumbs:mine.kills.map(k=>k.photo).filter(Boolean)});
+D.imports.filter(p=>p.date===date&&p.hunter!==me()).forEach(p=>out.push({hunter:p.hunter,_id:p._id,post:p.post,pos:p.pos,kills:p.kills||[],shots:p.shots||[],sightings:p.sightings||[],place:p.place,host:p.host,thumbs:(p.kills||[]).map(k=>k.thumb).filter(Boolean)}));return out}
+V.host=()=>{const dates=[...new Set([...D.imports.map(p=>p.date),...D.hunts.filter(h=>h.role==='host').map(h=>h.date)])].sort().reverse();const date=F.hostDate&&(dates.includes(F.hostDate)||D.hunts.find(h=>h.date===F.hostDate))?F.hostDate:dates[0];
+title('Battue','Host summary · Synthèse');const imp=`<label class="btn brass wide" style="text-transform:none;letter-spacing:0;font:600 15px var(--sans)">${I('down')} Import hunters' days (.carnet)<input type="file" accept=".carnet,application/json,.json" multiple class="hide" onchange="importDays(this.files)"></label>`;
+if(!date){$('#app').innerHTML=`<div class="hero"><div class="eyebrow">Host mode</div><h2>Run your battue</h2><p>Each guest taps <b>Send to host</b> on their day. Import their files or open their links here to see every post, sighting, kill and the shooting accuracy of the line.</p>${imp}<button class="btn ghost wide" onclick="newHunt('host')">${I('plus')} Start a day as host</button></div>`;return}
+const hd=hunterDays(date),mine=D.hunts.find(h=>h.date===date);const allK=hd.flatMap(x=>x.kills),allS=hd.flatMap(x=>x.shots),allSg=hd.flatMap(x=>x.sightings.map(s=>({...s,hunter:x.hunter})));const t=totals(allK);
+const sx={};allK.forEach(k=>{const o=sx[k.sp]=sx[k.sp]||{};o['s'+k.sex]=(o['s'+k.sex]||0)+(k.n||1);o['a'+k.age]=(o['a'+k.age]||0)+(k.n||1)});
+$('#app').innerHTML=`<div class="noprint row" style="margin-bottom:12px"><select onchange="F.hostDate=this.value;V.host()">${dates.map(d=>`<option value="${d}" ${d===date?'selected':''}>${fmtD(d)}</option>`).join('')}</select></div>
+<div class="hero"><div class="eyebrow">${fmtD(date)}</div><h2>${esc((mine&&mine.place)||hd[0].place||'Battue')}</h2><p>${hd.length} hunter${hd.length>1?'s':''} · ${nK(allK)} taken · ${allS.length} shots · ${allSg.length} sightings</p><div class="noprint">${imp}</div></div>
+<div class="kpis"><div class="kpi"><b>${nK(allK)}</b><span>tableau</span></div><div class="kpi"><b>${allS.length}</b><span>shots</span></div><div class="kpi"><b>${pct(nK(allK),allS.length)??'–'}${allS.length?'%':''}</b><span>line accuracy</span></div></div>
+<div class="card"><h3>${I('trophy')}<span class="sp">Tableau de battue</span></h3><table><tr><th>Species</th>${SEX.map(s=>`<th class="n">${SEXI[s]}</th>`).join('')}${AGE.map(s=>`<th class="n">${AGEI[s]}</th>`).join('')}<th class="n">Tot.</th></tr>
+${Object.keys(t).map(k=>`<tr><td>${sp(k).ic} ${esc(sp(k).fr||sp(k).en)}</td>${SEX.map(s=>`<td class="n">${sx[k]['s'+s]||''}</td>`).join('')}${AGE.map(s=>`<td class="n">${sx[k]['a'+s]||''}</td>`).join('')}<td class="n"><b>${t[k]}</b></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nothing taken yet</td></tr>'}</table></div>
+<div class="card"><h3>${I('map')}<span class="sp">Posts &amp; observations</span></h3><div id="hostmap" class="map" style="height:320px"></div><div class="muted">● posts · <span style="color:var(--r)">●</span> kills · <span style="color:var(--fg2)">●</span> sightings</div></div>
+<div class="card"><h3>${I('users')}<span class="sp">Hunters · Chasseurs</span></h3>${[...hd].sort((a,b)=>(+a.post||99)-(+b.post||99)).map(x=>{const k=nK(x.kills),s=x.shots.length;return`<div class="lb"><div class="rk">${esc(x.post||'–')}</div><div style="flex:1"><b>${esc(x.hunter)}</b>${x.mine?' <span class="tag">you</span>':''}${x.host===x.hunter?' <span class="tag">host</span>':''}<div class="muted">${k} taken · ${s} shots · ${hits(x.shots)} hits · ${x.sightings.length} seen</div><div style="margin-top:4px">${totStr(totals(x.kills))}</div>${x.thumbs.length?`<div class="row" style="margin-top:6px;justify-content:flex-start">${x.thumbs.slice(0,4).map(u=>`<img class="thumb" style="flex:0" src="${u}">`).join('')}</div>`:''}</div><div style="text-align:right;flex:0"><b class="num" style="font-size:20px">${pct(k,s)??'–'}${s?'%':''}</b>${x._id?`<br><button class="chip noprint" onclick="if(confirm('Remove ${esc(x.hunter)}\\'s day?')){D.imports=D.imports.filter(p=>p._id!=='${x._id}');save();V.host()}">${I('trash')}</button>`:''}</div></div>`}).join('')}</div>
+<div class="card"><h3>${I('bino')}<span class="sp">Sightings · Observations</span></h3><div class="list">${allSg.sort((a,b)=>a.t-b.t).map(s=>`<div class="it"><div class="emo">${sp(s.sp).ic}</div><div style="flex:1"><b>${esc(sp(s.sp).fr||sp(s.sp).en)}</b> ×${s.n} ${s.shot?'<span class="tag r">shot</span>':''}<div class="muted">${sa(s)} · ${fmtT(s.t)} · ${esc(s.hunter)}</div></div></div>`).join('')||'<div class="muted">None reported</div>'}</div></div>
+<button class="btn ghost wide noprint" onclick="print()">${I('print')} Print battue report</button>`;
+const m=mkMap($('#hostmap'));if(!m)return;const pts=[];hd.forEach(x=>{if(x.pos){pts.push(x.pos);lbl(x.pos,(x.post?x.post+' · ':'')+x.hunter.split(' ')[0]).addTo(m)}x.kills.forEach(k=>{const p=k.pos||x.pos;if(p){pts.push(p);dot(p,'#9b3a2a',8).addTo(m).bindPopup(`🎯 ${sp(k.sp).en} · ${sa(k)}<br>${esc(x.hunter)} ${k.time||''}${k.thumb?`<br><img src="${k.thumb}" width="120">`:''}`)}});
+x.sightings.forEach(s=>{if(s.pos){pts.push(s.pos);dot(s.pos,'#2c4a34',6).addTo(m).bindPopup(`${sp(s.sp).en} · ${sa(s)} ×${s.n}<br>${esc(x.hunter)} ${fmtT(s.t)}`)}})});if(pts.length)m.fitBounds(pts,{maxZoom:15,padding:[40,40]})};
+/* ---------- MAP ---------- */
+V.map=()=>{title('Carte','All hunts, shots and sightings');const fs=[['hunts','Days'],['kills','Kills'],['shots','Shots'],['sight','Sightings'],['others','Other hunters']];
+$('#app').innerHTML=`<div class="chips noprint">${fs.map(([k,l])=>`<button class="chip ${F[k]?'on':''}" onclick="F.${k}=!F.${k};V.map()">${l}</button>`).join('')}</div>
+<div class="row" style="margin:10px 0"><select onchange="F.sp=this.value;V.map()"><option value="">All species</option>${D.species.map(s=>`<option value="${s.id}" ${F.sp===s.id?'selected':''}>${esc(s.fr||s.en)}</option>`).join('')}</select>${seasonSel('V.map()')}</div><div id="bigmap" class="map"></div>`;
+const m=mkMap($('#bigmap'));if(!m)return;const pts=[],ok=d=>!F.season||season(d)===F.season,okS=id=>!F.sp||F.sp===id,P=p=>{pts.push(p);return p};
+D.hunts.filter(h=>ok(h.date)).forEach(h=>{if(F.hunts&&h.pos)lbl(P(h.pos),h.date.slice(5)).addTo(m).bindPopup(`<b>${fmtD(h.date)}</b><br>${esc(h.place)}<br>${totStr(totals(h.kills))}`);
+if(F.kills)h.kills.forEach(k=>{const p=k.pos||h.pos;if(p&&okS(k.sp))dot(P(p),'#9b3a2a',8).addTo(m).bindPopup(`🎯 ${sp(k.sp).en} · ${sa(k)}<br>${fmtD(h.date)} ${k.time||''}${k.photo?`<br><img src="${k.photo}" width="140">`:''}`)});
+if(F.shots&&!F.sp)h.shots.forEach(s=>s.pos&&dot(P(s.pos),'#b08a46',5).addTo(m).bindPopup(`Shot ${fmtT(s.t)} · ${s.hit===true||s.killId?'hit':s.hit===false?'miss':'—'}${s.clip&&s.clip.thumb?`<br><img src="${s.clip.thumb}" width="140">`:''}`))});
+if(F.sight)D.sightings.filter(s=>s.pos&&ok(s.t)&&okS(s.sp)).forEach(s=>dot(P(s.pos),sp(s.sp).game?'#2c4a34':'#3b6e8f',6).addTo(m).bindPopup(`${sp(s.sp).en} · ${sa(s)} ×${s.n}<br>${new Date(s.t).toLocaleString('en-GB')} ±${s.acc} m`));
+if(F.others)D.imports.filter(p=>ok(p.date)&&p.hunter!==me()).forEach(p=>{if(p.pos&&!F.sp)dot(P(p.pos),'#7d7564',6).addTo(m).bindPopup(`${esc(p.hunter)} · poste ${esc(p.post||'')}<br>${fmtD(p.date)}`);(p.kills||[]).forEach(k=>{const q=k.pos||p.pos;if(q&&okS(k.sp))dot(P(q),'#c46a4a',6).addTo(m).bindPopup(`${esc(p.hunter)}: ${sp(k.sp).en} · ${sa(k)}`)})});
+if(pts.length)m.fitBounds(pts,{maxZoom:14,padding:[30,30]})};
+/* ---------- SEASON ---------- */
+function board(sz){const b={};const add=(n,k,s,d)=>{const o=b[n]=b[n]||{name:n,k:0,s:0,days:new Set()};o.k+=k;o.s+=s;o.days.add(d)};
+D.hunts.filter(h=>!sz||season(h.date)===sz).forEach(h=>add(me(),nK(h.kills),h.shots.length,h.date));
+D.imports.filter(p=>(!sz||season(p.date)===sz)&&p.hunter!==me()).forEach(p=>add(p.hunter,nK(p.kills||[]),(p.shots||[]).length,p.date));
+return Object.values(b).sort((a,c)=>((c.s>=3)-(a.s>=3))||(c.s?c.k/c.s:-1)-(a.s?a.k/a.s:-1)||c.k-a.k)}
+V.stats=()=>{const sz=F.season||season(Date.now());title('Saison '+sz,'Tableau & accuracy trophy');const hs=D.hunts.filter(h=>season(h.date)===sz),ss=D.sightings.filter(s=>season(s.t)===sz);
+const kills=hs.flatMap(h=>h.kills),t=totals(kills),tot=nK(kills),shots=hs.reduce((a,h)=>a+h.shots.length,0);const st={};ss.forEach(s=>st[s.sp]=(st[s.sp]||0)+s.n);
+const sx={};kills.forEach(k=>{const o=sx[k.sp]=sx[k.sp]||{};o['s'+k.sex]=(o['s'+k.sex]||0)+(k.n||1);o['a'+k.age]=(o['a'+k.age]||0)+(k.n||1)});const hosts={};hs.forEach(h=>h.host&&h.host!==me()&&(hosts[h.host]=(hosts[h.host]||0)+1));
+const MIN=3,lb=board(sz),ranked=lb.filter(x=>x.s>=MIN),lead=ranked[0];const endY=+sz.split('–')[1],final=Date.now()>new Date(endY,5,30,23,59).getTime();
+$('#app').innerHTML=`<div class="noprint" style="margin-bottom:12px"><select onchange="F.season=this.value;V.stats()">${seasons().map(s=>`<option ${sz===s?'selected':''}>${s}</option>`).join('')}</select></div>
+${lead?`<div class="trophy"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-trophy"/></svg><div><div class="eyebrow" style="color:#e6c987">${final?'Season trophy · Final':'Accuracy trophy · Live'}</div><b>${esc(lead.name)}</b><span style="color:#d9d0b8">${pct(lead.k,lead.s)}% · ${lead.k} taken from ${lead.s} shots</span></div></div>`:''}
+<div class="kpis"><div class="kpi"><b>${hs.length}</b><span>days</span></div><div class="kpi"><b>${tot}</b><span>taken</span></div><div class="kpi"><b>${pct(tot,shots)??'–'}${shots?'%':''}</b><span>${shots} shots</span></div></div>
+<div class="card"><h3>${I('trophy')}<span class="sp">Leaderboard · Adresse</span></h3>${lb.map((x,i)=>`<div class="lb ${x===lead?'first':''}"><div class="rk">${x.s>=MIN?ranked.indexOf(x)+1:'–'}</div><div style="flex:1"><b>${esc(x.name)}</b>${x.name===me()?' <span class="tag">you</span>':''}<div class="muted">${x.k} taken · ${x.s} shot${x.s!==1?'s':''} · ${x.days.size} day${x.days.size>1?'s':''}${x.s<MIN?' · ranks after '+MIN+' shots':''}</div><div class="bar"><i style="width:${pct(x.k,x.s)||0}%"></i></div></div><b class="num" style="font-size:20px">${pct(x.k,x.s)??'–'}${x.s?'%':''}</b></div>`).join('')||'<div class="muted">Log shots to enter the leaderboard. Imported hunters from your battues appear here too.</div>'}
+<div class="muted" style="margin-top:8px">Accuracy = game taken ÷ shots fired · minimum 3 shots to rank.</div></div>
+<div class="card"><h3>${I('book')}<span class="sp">Mon tableau</span></h3><table><tr><th>Species</th>${SEX.map(s=>`<th class="n">${SEXI[s]}</th>`).join('')}${AGE.map(s=>`<th class="n">${AGEI[s]}</th>`).join('')}<th class="n">Tot.</th></tr>${Object.keys(t).map(k=>`<tr><td>${sp(k).ic} ${esc(sp(k).fr||sp(k).en)}</td>${SEX.map(s=>`<td class="n">${sx[k]['s'+s]||''}</td>`).join('')}${AGE.map(s=>`<td class="n">${sx[k]['a'+s]||''}</td>`).join('')}<td class="n"><b>${t[k]}</b></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Nothing yet</td></tr>'}</table></div>
+<div class="card"><h3>${I('bino')}<span class="sp">Observations</span></h3><table>${Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<tr><td>${sp(k).ic} ${esc(sp(k).fr||sp(k).en)} ${sp(k).game?'':'<span class="tag">protégé</span>'}</td><td class="n"><b>${n}</b></td></tr>`).join('')||'<tr><td class="muted">None</td></tr>'}</table></div>
+${Object.keys(hosts).length?`<div class="card"><h3>${I('users')}<span class="sp">Invitations</span></h3>${Object.entries(hosts).map(([h,n])=>`<span class="tag">${esc(h)} ×${n}</span>`).join(' ')}</div>`:''}
+<div class="card"><h3>${I('cal')}<span class="sp">Journées</span></h3><table>${[...hs].sort((a,b)=>a.date.localeCompare(b.date)).map(h=>`<tr><td style="white-space:nowrap">${h.date.slice(5)}</td><td>${esc(h.place)}<br><span class="muted">${esc(h.type)} · ${h.role==='host'?'host':esc(h.host)}</span></td><td>${totStr(totals(h.kills))}</td></tr>`).join('')}</table></div>
+<div class="noprint"><button class="btn wide" onclick="print()">${I('print')} Printable season report</button><button class="btn ghost wide" onclick="csv()">${I('down')} Export CSV</button></div>`};
+function csv(){const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const r=[['record','hunter','date','time','species','species_fr','game','sex','age','count','hit','lat','lon','gps_acc_m','place','host','post','neighbours','type','clip','note']];
+D.hunts.forEach(h=>{h.kills.forEach(k=>{const p=k.pos||h.pos||[];r.push(['kill',me(),h.date,k.time,sp(k.sp).en,sp(k.sp).fr,sp(k.sp).game,k.sex,k.age,k.n,'',p[0],p[1],k.acc,h.place,h.host,h.post,h.neighbours.join('; '),h.type,k.clip&&k.clip.name,k.note])});
+h.shots.forEach(s=>{const p=s.pos||[];const k=h.kills.find(x=>x.id===s.killId);r.push(['shot',me(),h.date,fmtT(s.t),k?sp(k.sp).en:'','','','','','',s.hit===true||s.killId?1:s.hit===false?0:'',p[0],p[1],s.acc,h.place,h.host,h.post,'',h.type,s.clip&&s.clip.name,''])})});
+D.sightings.forEach(s=>{const p=s.pos||[];r.push(['sighting',me(),ldate(s.t),fmtT(s.t),sp(s.sp).en,sp(s.sp).fr,sp(s.sp).game,s.sex,s.age,s.n,s.shot?1:'',p[0],p[1],s.acc,'','','','','','',''])});
+D.imports.forEach(x=>(x.kills||[]).forEach(k=>{const p=k.pos||x.pos||[];r.push(['kill',x.hunter,x.date,k.time,sp(k.sp).en,sp(k.sp).fr,sp(k.sp).game,k.sex,k.age,k.n,'',p[0],p[1],k.acc,x.place,x.host,x.post,'',x.type,'',k.note])}));
+dl('carnet-'+today()+'.csv','\ufeff'+r.map(x=>x.map(q).join(',')).join('\n'),'text/csv')}
+/* ---------- SETTINGS ---------- */
+V.settings=()=>{title('Réglages','Settings');$('#app').innerHTML=`<div class="card"><h3>${I('users')}<span class="sp">Hunter profile</span></h3><label style="margin-top:0">Your name · Nom du chasseur</label><input value="${esc(D.me.name)}" placeholder="Shown to hosts and on leaderboards" onchange="D.me.name=this.value.trim();save();toast('Saved')"></div>
+<div class="card"><h3>${I('down')}<span class="sp">Backup &amp; export</span></h3><button class="btn wide" onclick="dl('carnet-backup-'+today()+'.json',JSON.stringify(D),'application/json')">${I('down')} Full backup (JSON)</button>
+<label class="btn ghost wide" style="text-transform:none;letter-spacing:0;font:600 15px var(--sans);color:var(--t)">${I('up')} Restore backup or import .carnet<input type="file" accept=".json,.carnet,application/json" multiple class="hide" onchange="imp(this.files)"></label><button class="btn ghost wide" onclick="csv()">${I('down')} Export CSV</button>
+<p class="muted">Stored on this device: ${(JSON.stringify(D).length/1024).toFixed(0)} KB of ≈5 000 KB. Gun-camera videos are never stored – only a thumbnail, time and file name.</p></div>
+<div class="card"><h3><span class="sp">Espèces · Species</span></h3><p class="muted" style="margin-top:0">🎯 game species appear in the tableau picker; 🛡️ protected species only in observations.</p><div class="list">${D.species.map((s,i)=>`<div class="it" style="flex-wrap:wrap"><input style="width:58px;flex:0;text-align:center;font-size:22px;padding:8px" value="${s.ic}" onchange="D.species[${i}].ic=this.value;save()"><div style="flex:1;min-width:150px"><input value="${esc(s.fr)}" placeholder="Nom français" onchange="D.species[${i}].fr=this.value;save()" style="margin-bottom:6px"><input value="${esc(s.en)}" placeholder="English" onchange="D.species[${i}].en=this.value;save()"></div>
+<div class="chips" style="width:100%"><select style="width:auto;flex:1" onchange="D.species[${i}].grp=this.value;save()">${Object.keys(GRP).map(g=>`<option value="${g}" ${s.grp===g?'selected':''}>${GRP[g][0]}</option>`).join('')}</select><button class="chip ${s.game?'on':''}" onclick="D.species[${i}].game=!D.species[${i}].game;save();V.settings()">${s.game?'🎯 Game':'🛡️ Protected'}</button><button class="chip" onclick="D.species.splice(${i},1);save();V.settings()">${I('trash')}</button></div></div>`).join('')}</div>
+<div class="row" style="margin-top:10px"><input id="ns" placeholder="New species"><button class="btn" style="flex:0" onclick="if($('#ns').value.trim()){D.species.push({id:'c_'+uid(),en:$('#ns').value.trim(),fr:$('#ns').value.trim(),ic:'❔',grp:'other',game:false});save();V.settings()}">${I('plus')}</button></div>
+<button class="btn ghost wide" onclick="if(confirm('Restore the default species list?')){D.species=DEF_SP.map(s=>({...s}));save();V.settings()}">Restore default species</button></div>
+<div class="card"><h3><span class="sp">Data</span></h3><button class="btn ghost wide" onclick="sample();go('home')">Explore with a sample season</button><button class="btn ghost wide" style="color:var(--r)" onclick="if(confirm('Erase ALL data on this device?')){localStorage.removeItem('carnet');D=blank();go('home')}">${I('trash')} Erase all data</button>
+<p class="muted" style="text-align:center;margin-bottom:0">Carnet de Chasse · v3 · works offline</p></div>`};
+async function imp(files){const ps=await readFiles(files);let days=0;for(const d of ps){if(!d)continue;if(d.format==='carnet-day'){addImport(d);days++}else if(d.species&&d.hunts){if(!confirm('Replace all data on this device with this backup?'))continue;D=mig(d);toast('Backup restored')}}save();if(days)toast(`Imported ${days} hunter day${days>1?'s':''}`);go(days?'host':'home')}
+/* ---------- SAMPLE SEASON ---------- */
+function sample(){if(!D.me.name)D.me.name='Antoine Laurent';const c=[47.497,1.912],j=(b,r)=>[+(b[0]+(Math.random()-.5)*(r||.01)).toFixed(5),+(b[1]+(Math.random()-.5)*(r||.01)).toFixed(5)],T=(d,h)=>new Date(d+'T'+h).getTime();
+const k1=uid(),k2=uid(),k3=uid();const d1='2026-10-04',d2='2026-09-27',d3='2026-10-10';
+D.hunts.push({id:uid(),date:d1,place:'Domaine des Chênes, Sologne',pos:c,acc:6,role:'host',host:me(),post:'4',neighbours:['Marc Fournier','Sophie Bernard'],type:'Battue',notes:'Six traques, grand soleil. Belle compagnie de sangliers dans la 3e.',
+kills:[{id:k1,sp:'boar',sex:'Male',age:'Adult',n:1,time:'10:42',pos:j(c,.004),acc:5,note:'78 kg'},{id:k2,sp:'roe',sex:'Female',age:'Young',n:1,time:'14:15',pos:j(c,.004),acc:8,note:''}],
+shots:[{id:uid(),t:T(d1,'10:41'),pos:c,acc:6,hit:false,killId:null},{id:uid(),t:T(d1,'10:42'),pos:c,acc:6,hit:true,killId:k1},{id:uid(),t:T(d1,'14:15'),pos:c,acc:7,hit:true,killId:k2},{id:uid(),t:T(d1,'15:30'),pos:c,acc:9,hit:false,killId:null}]},
+{id:uid(),date:d2,place:'Plaine de Beauce',pos:[48.21,1.62],acc:12,role:'guest',host:'Claire Martin',post:'2',neighbours:['Paul Girard'],type:'Devant soi',notes:'',
+kills:[{id:k3,sp:'pheasant',sex:'Male',age:'Adult',n:3,time:'11:05',pos:[48.212,1.623],acc:10,note:''},{id:uid(),sp:'greyp',sex:'Unknown',age:'Unknown',n:2,time:'15:30',pos:null,acc:null,note:''}],
+shots:[...Array(8)].map((_,i)=>({id:uid(),t:T(d2,'1'+(i%5)+':'+(10+i*5)),pos:[48.21+i*.001,1.62],acc:14,hit:i<5,killId:i===0?k3:null}))},
+{id:uid(),date:d3,place:'Bois de la Ferté',pos:[47.62,2.05],acc:18,role:'guest',host:'Henri Dubois',post:'7',neighbours:['Henri Dubois'],type:'Battue',notes:'',kills:[],shots:[{id:uid(),t:T(d3,'11:20'),pos:[47.62,2.05],acc:18,hit:false,killId:null}]});
+[['roe','Female','Adult',2,'09:12'],['red','Male','Adult',1,'09:40'],['buzzard','Unknown','Adult',1,'11:02'],['crane','Unknown','Adult',14,'12:30'],['boar','Unknown','Young',5,'10:35']].forEach(([s,x,a,n,h])=>D.sightings.push({id:uid(),t:T(d1,h),sp:s,sex:x,age:a,n,shot:false,pos:j(c,.006),acc:9}));
+const S=(t,s,x,a,n,p)=>({id:uid(),t:T(d1,t),sp:s,sex:x,age:a,n,shot:false,pos:p,acc:7});
+const guest=(name,post,pos,kills,nshots,hitsN,sg)=>addImport({format:'carnet-day',v:1,hunter:name,date:d1,place:'Domaine des Chênes, Sologne',post,pos,acc:5,host:me(),type:'Battue',species:[],kills,shots:[...Array(nshots)].map((_,i)=>({id:uid(),t:T(d1,'1'+(i%6)+':0'+i),pos,acc:5,hit:i<hitsN})),sightings:sg});
+const pM=[c[0]+.003,c[1]-.004],pS=[c[0]-.002,c[1]+.005],pJ=[c[0]+.005,c[1]+.002];
+guest('Marc Fournier','3',pM,[{sp:'boar',sex:'Female',age:'Adult',n:1,time:'10:44',pos:j(pM,.002)},{sp:'boar',sex:'Unknown',age:'Young',n:1,time:'10:45',pos:j(pM,.002)},{sp:'fox',sex:'Male',age:'Adult',n:1,time:'15:10',pos:j(pM,.002)}],4,3,[S('10:30','boar','Unknown','Adult',6,j(pM,.003)),S('13:05','lynx','Unknown','Adult',1,j(pM,.003))]);
+guest('Sophie Bernard','5',pS,[{sp:'roe',sex:'Male',age:'Adult',n:1,time:'11:20',pos:j(pS,.002)}],1,1,[S('11:15','roe','Male','Adult',1,j(pS,.003)),S('14:00','kite','Unknown','Adult',2,j(pS,.003))]);
+guest('Jean-Luc Moreau','6',pJ,[{sp:'boar',sex:'Male',age:'Young',n:1,time:'14:50',pos:j(pJ,.002)}],5,2,[S('14:40','red','Female','Adult',3,j(pJ,.003))]);
+save()}
+/* ---------- BOOT ---------- */
+async function boot(){const h=location.hash;if(h.startsWith('#import=')){try{const p=JSON.parse(await inflate(h.slice(8)));addImport(p);save();F.hostDate=p.date;history.replaceState(null,'',location.pathname);toast(`Imported ${p.hunter}'s day`);return go('host')}catch(e){toast('This link could not be read')}history.replaceState(null,'',location.pathname)}
+if(/[?&]sample\b/.test(location.search)&&!D.hunts.length)sample();const r=h.slice(1);go(V[r]?r:'home')}
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
-if(location.search.includes('demo')&&!D.hunts.length)loadDemo();go(V[location.hash.slice(1)]?location.hash.slice(1):'home');
+window.addEventListener('error',e=>console.error('APPERR',e.message));
+boot();
 </script></body></html>
